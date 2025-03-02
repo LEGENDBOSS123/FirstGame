@@ -173,7 +173,7 @@ var Player = class extends Entity {
         var mag = velDelta.magnitude();
 
         var moveStrength = this.moveStrength;
-        if(this.touchingGround) {
+        if(!this.touchingGround) {
             moveStrength = this.airMoveStrength;
         }
 
