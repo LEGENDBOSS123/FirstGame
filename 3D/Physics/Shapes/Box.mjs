@@ -110,14 +110,16 @@ const Box = class extends Composite {
         this.addToScene(graphicsEngine.scene);
     }
 
-    fromMesh(mesh) {
-
+    fromMesh(mesh, graphicsEngine) {
         var cubeSize = [Math.abs(mesh.geometry.attributes.position.array[0]), Math.abs(mesh.geometry.attributes.position.array[1]), Math.abs(mesh.geometry.attributes.position.array[2])];
         this.width = Math.abs(mesh.scale.x) * 2 * cubeSize[0];
         this.height = Math.abs(mesh.scale.y) * 2 * cubeSize[1];
         this.depth = Math.abs(mesh.scale.z) * 2 * cubeSize[2];
-        this.global.body.rotation = new Quaternion(mesh.quaternion.w, mesh.quaternion.x, mesh.quaternion.y, mesh.quaternion.z);
-        this.global.body.setPosition(new Vector3(mesh.position.x, mesh.position.y, mesh.position.z));
+        
+        var pos = Vector3.from(mesh.getWorldPosition(new graphicsEngine.THREE.Vector3()));
+        var quat = Quaternion.from(mesh.getWorldQuaternion(new graphicsEngine.THREE.Quaternion));
+        this.global.body.rotation = quat;
+        this.global.body.setPosition(pos);
         this.global.body.actualPreviousPosition = this.global.body.position.copy();
         this.global.body.previousRotation = this.global.body.rotation.copy();
         this.dimensionsChanged();

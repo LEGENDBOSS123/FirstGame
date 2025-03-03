@@ -55,7 +55,7 @@ graphicsEngine.setBackgroundImage("3D/Graphics/Textures/autumn_field_puresky_8k.
 graphicsEngine.setSunlightDirection(new Vector3(-2, -8, -5));
 graphicsEngine.setSunlightBrightness(1);
 graphicsEngine.disableAO();
-graphicsEngine.disableShadows();
+// graphicsEngine.disableShadows();
 
 graphicsEngine.renderDistance = 2048;
 graphicsEngine.cameraFar = 4096;
@@ -151,35 +151,42 @@ var addParticle = function (position, damage) {
 top.addParticle = addParticle;
 
 
-for (var i = 0; i < 1; i++) {
-    graphicsEngine.load('ground.glb', function (gltf) {
-        gltf.scene.castShadow = true;
-        gltf.scene.receiveShadow = true;
-        gltf.scene.traverse(function (child) {
-            child = child.clone();
-            child.castShadow = true;
-            child.receiveShadow = true;
-            if (child.isMesh) {
-                child.material.depthWrite = true;
+// for (var i = 0; i < 1; i++) {
+//     graphicsEngine.load('example.glb', function (gltf) {
+//         gltf.scene.castShadow = true;
+//         gltf.scene.receiveShadow = true;
+//         gltf.scene.traverse(function (child) {
+//             child = child.clone();
+//             child.castShadow = true;
+//             child.receiveShadow = true;
+//             if (child.isMesh) {
+//                 child.material.depthWrite = true;
 
-            }
-            if (child.isMesh) {
-                var poly = new Polyhedron({ local: { body: { mass: 1 } } }).fromMesh(child, graphicsEngine);
-                poly.setRestitution(0);
-                poly.setFriction(0);
-                poly.mesh = graphicsEngine.meshLinker.createMeshData(child);
-                poly.addToScene(graphicsEngine.scene);
-                poly.setLocalFlag(Composite.FLAGS.STATIC, true);
-                top.e = child;
-                world.addComposite(poly);
-                top.poly = poly;
-            }
+//             }
+//             if (child.isMesh) {
+//                 var poly = new Polyhedron({ local: { body: { mass: 1 } } }).fromMesh(child, graphicsEngine);
+//                 poly.setRestitution(0);
+//                 poly.setFriction(0);
+//                 poly.mesh = graphicsEngine.meshLinker.createMeshData(child);
+//                 poly.addToScene(graphicsEngine.scene);
+//                 poly.setLocalFlag(Composite.FLAGS.STATIC, true);
+//                 top.e = child;
+//                 world.addComposite(poly);
+//                 top.poly = poly;
+//             }
+//         });
+//         player.respawn();
+//     });
+// }
 
-        });
-        player.respawn();
-    });
+var map = await graphicsEngine.loadMap("example.glb");
+for(var obj of map.objects){
+    world.addComposite(obj);
+    obj.addToScene(graphicsEngine.scene);
 }
-
+for(var mesh of map.meshes){
+    graphicsEngine.addToScene(mesh);
+}
 
 
 var fps = 20;

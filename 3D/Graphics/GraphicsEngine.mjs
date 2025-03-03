@@ -4,7 +4,10 @@ import { N8AOPostPass } from './N8AO.mjs';
 import AutoTextureLoader from "./AutoTextureLoader.mjs";
 import MeshLinker from "./MeshLinker.mjs";
 import Vector3 from "../Physics/Math3D/Vector3.mjs";
-
+import Composite from "../Physics/Shapes/Composite.mjs";
+import Box from "../Physics/Shapes/Box.mjs";
+import Sphere from "../Physics/Shapes/Sphere.mjs";
+import Polyhedron from "../Physics/Shapes/Polyhedron.mjs";
 var GraphicsEngine = class {
     constructor(options) {
         this.THREE = THREE;
@@ -78,9 +81,9 @@ var GraphicsEngine = class {
 
     raycastFirst() {
         this.raycaster.setFromCamera(this.mousePosition, this.camera);
-        var intesections = this.raycaster.intersectObjects(this.scene.children, true);
-        for(var i of intesections){
-            if(i.face == null && !i.normal){
+        const intesections = this.raycaster.intersectObjects(this.scene.children, true);
+        for (var i of intesections) {
+            if (i.face == null && !i.normal) {
                 continue;
             }
             return i;
@@ -114,7 +117,7 @@ var GraphicsEngine = class {
         this.meshLinker.update(previousWorld, world, lerpAmount);
     }
     render() {
-        for (var mixer of this.mixers) {
+        for (const mixer of this.mixers) {
             mixer.update(16 / 1000)
         }
         this.sunlight.position.copy(this.camera.position);
@@ -126,9 +129,9 @@ var GraphicsEngine = class {
     }
 
     createAnimations(model, animations) {
-        var mixer = new this.THREE.AnimationMixer(model);
-        var actions = [];
-        for (var animation of animations) {
+        const mixer = new this.THREE.AnimationMixer(model);
+        const actions = [];
+        for (const animation of animations) {
             actions.push(mixer.clipAction(animation));
         }
         this.mixers.push(mixer);
@@ -139,7 +142,7 @@ var GraphicsEngine = class {
     }
 
     setBackgroundImage(url, setBackground = true, setEnvironment = false) {
-        this.textureLoader.load(url, function (texture, extension) {
+        this.textureLoader.load(url).then(function (texture, extension) {
             var pmremGenerator = new THREE.PMREMGenerator(this.renderer);
             pmremGenerator.compileEquirectangularShader();
             texture = pmremGenerator.fromEquirectangular(texture).texture;
@@ -176,7 +179,7 @@ var GraphicsEngine = class {
         this.sunlight.shadow.camera.right = range;
         this.sunlight.shadow.camera.top = range;
         this.sunlight.shadow.camera.bottom = -range;
-        this.sunlight.shadow.bias = -0.0001;
+        this.sunlight.shadow.bias = -0.00001;
         this.scene.add(this.sunlight);
         this.scene.add(this.sunlight.target);
 
@@ -205,8 +208,53 @@ var GraphicsEngine = class {
         this.scene.add(object);
     }
 
-    load(url, onLoad, onProgress, onError) {
-        this.textureLoader.load(url, onLoad, onProgress, onError);
+
+    async load(url, onLoad, onProgress, onError) {
+        return this.textureLoader.load(url, onLoad, onProgress, onError);
+    }
+
+    async loadMap(url) {
+        const map = { objects: [], meshes: [] };
+        const traverse = function (child, colliderParsed) {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+                child.material.depthWrite = true;
+                if (!colliderParsed) {
+                    var invalidShape = false;
+                    var shape = Composite;
+                    if (child.name.startsWith("Box")) {
+                        shape = Box;
+                    }
+                    else if (child.name.startsWith("Sphere")) {
+                        shape = Sphere;
+                    }
+                    else if (child.name.startsWith("Poly")) {
+                        shape = Polyhedron;
+                    }
+                    else {
+                        map.meshes.push(child);
+                        invalidShape = true;
+                    }
+
+                    if (!invalidShape) {
+                        var obj = new shape().fromMesh(child, this);
+                        obj.mesh = this.meshLinker.createMeshData(child);
+                        //obj.setMesh({}, graphicsEngine);
+                        obj.setLocalFlag(Composite.FLAGS.STATIC, true);
+                        map.objects.push(obj);
+                    }
+
+                    colliderParsed = true;
+                }
+            }
+            for (const c of child.children) {
+                traverse(c, colliderParsed);
+            }
+        }.bind(this);
+        var gltf = await this.textureLoader.load(url);
+        traverse(gltf.scene);
+        return map;
     }
 
     enableAO() {

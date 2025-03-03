@@ -16,6 +16,7 @@ var Player = class extends Entity {
                 body: {
                     position: options?.position ?? new Vector3(0, 0, 0),
                     acceleration: this.gravity,
+                    angularDamping: 1
                 }
             },
             local: {
@@ -49,23 +50,27 @@ var Player = class extends Entity {
         this.touchingGround = false;
         this.touchingWall = false;
         this.wallNormal = new Vector3();
+
+        this.groundDetectDot = 0.75;
+        this.wallDetectDot = 0.3;
+
         this.jumpPostCollision = function (contact) {
             if (contact.body1.maxParent == this.composite) {
-                if (contact.normal.dot(new Vector3(0, 1, 0)) > 0.75) {
+                if (contact.normal.dot(new Vector3(0, 1, 0)) > this.groundDetectDot) {
                     this.canJump = true;
                     this.touchingGround = true;
                 }
-                if (Math.abs(contact.normal.dot(new Vector3(0, 1, 0))) < 0.3) {
+                if (Math.abs(contact.normal.dot(new Vector3(0, 1, 0))) < this.wallDetectDot) {
                     this.touchingWall = true;
                     this.wallNormal = contact.normal.copy();
                 }
             }
             else {
-                if (contact.normal.dot(new Vector3(0, -1, 0)) > 0.75) {
+                if (contact.normal.dot(new Vector3(0, -1, 0)) > this.groundDetectDot) {
                     this.canJump = true;
                     this.touchingGround = true;
                 }
-                if (Math.abs(contact.normal.dot(new Vector3(0, -1, 0))) < 0.3) {
+                if (Math.abs(contact.normal.dot(new Vector3(0, -1, 0))) < this.wallDetectDot) {
                     this.touchingWall = true;
                     this.wallNormal = contact.normal.copy();
                 }
@@ -116,7 +121,7 @@ var Player = class extends Entity {
 
     setMeshAndAddToScene(options, graphicsEngine) {
 
-        graphicsEngine.load("roblox_default_character.glb", function (gltf) {
+        graphicsEngine.load("roblox_default_character.glb").then(function (gltf) {
             gltf.scene.scale.set(...(new Vector3(0.4, 0.4, 0.4).scale(this.sphere.radius)));
             gltf.scene.children[0].quaternion.copy(Quaternion.from(gltf.scene.children[0].quaternion).rotateByAngularVelocity(new Vector3(0, 2, 0)));
             for (var e of gltf.scene.children) {
@@ -134,7 +139,7 @@ var Player = class extends Entity {
             this.composite.mesh = meshData;
             this.addToScene(graphicsEngine.scene);
         }.bind(this));
-        this.sphere.setMeshAndAddToScene({}, graphicsEngine);
+        //this.sphere.setMeshAndAddToScene({}, graphicsEngine);
 
     }
 

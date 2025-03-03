@@ -1,6 +1,7 @@
 import Composite from "./Composite.mjs";
 import Vector3 from "../Math3D/Vector3.mjs";
 import Matrix3 from "../Math3D/Matrix3.mjs";
+import Quaternion from "../Math3D/Quaternion.mjs";
 import ClassRegistry from "../Core/ClassRegistry.mjs";
 const Sphere = class extends Composite {
 
@@ -20,7 +21,7 @@ const Sphere = class extends Composite {
     }
 
     calculateGlobalHitbox(forced = false) {
-        if(this.sleeping && !forced){
+        if (this.sleeping && !forced) {
             return;
         }
         this.global.hitbox.min = this.local.hitbox.min.add(this.global.body.position);
@@ -49,6 +50,19 @@ const Sphere = class extends Composite {
     setMeshAndAddToScene(options, graphicsEngine) {
         this.setMesh(options, graphicsEngine);
         this.addToScene(graphicsEngine.scene);
+    }
+
+    fromMesh(mesh, graphicsEngine) {
+        this.radius = mesh.scale.x;
+
+        var pos = Vector3.from(mesh.getWorldPosition(new graphicsEngine.THREE.Vector3()));
+        var quat = Quaternion.from(mesh.getWorldQuaternion(new graphicsEngine.THREE.Quaternion));
+        this.global.body.rotation = quat;
+        this.global.body.setPosition(pos);
+        this.global.body.actualPreviousPosition = this.global.body.position.copy();
+        this.global.body.previousRotation = this.global.body.rotation.copy();
+        this.dimensionsChanged();
+        return this;
     }
 
     toJSON() {

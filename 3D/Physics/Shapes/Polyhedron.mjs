@@ -195,9 +195,10 @@ const Polyhedron = class extends Composite {
         }
         this.localVertices = vertices;
         this.faces = faces;
-
-        this.global.body.rotation = new Quaternion(mesh.quaternion.w, mesh.quaternion.x, mesh.quaternion.y, mesh.quaternion.z);
-        this.global.body.setPosition(new Vector3(mesh.position.x, mesh.position.y, mesh.position.z));
+        var pos = Vector3.from(mesh.getWorldPosition(new graphicsEngine.THREE.Vector3()));
+        var quat = Quaternion.from(mesh.getWorldQuaternion(new graphicsEngine.THREE.Quaternion));
+        this.global.body.rotation = quat;
+        this.global.body.setPosition(pos);
         this.global.body.actualPreviousPosition = this.global.body.position.copy();
         this.global.body.previousRotation = this.global.body.rotation.copy();
         this.dimensionsChanged();
