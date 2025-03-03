@@ -85,8 +85,10 @@ var Player = class extends Entity {
 
 
         this.preStepCallback = function () {
-            this.touchingGround = false;
-            this.touchingWall = false;
+            if(!this.sphere.sleeping){
+                this.touchingGround = false;
+                this.touchingWall = false;
+            }
         }.bind(this);
 
         this.sphere.addEventListener("postCollision", this.jumpPostCollision);
@@ -173,6 +175,7 @@ var Player = class extends Entity {
         var mag = velDelta.magnitude();
 
         var moveStrength = this.moveStrength;
+
         if(!this.touchingGround) {
             moveStrength = this.airMoveStrength;
         }
@@ -180,7 +183,7 @@ var Player = class extends Entity {
         if(mag > this.moveSpeed * moveStrength) {
             velDelta.scaleInPlace(this.moveSpeed * moveStrength/mag);
         }
-        if(this.wasKeyJustPressed("up")){
+        if(this.wasKeyJustPressed("up") && this.touchingGround){
             velDelta.y = this.jumpSpeed;
         }
         this.composite.global.body.setVelocity(vel.add(velDelta));

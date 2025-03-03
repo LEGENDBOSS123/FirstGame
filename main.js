@@ -63,7 +63,7 @@ window.graphicsEngine = graphicsEngine;
 
 
 
-top.gameCamera = new CameraTHREEJS({ camera: graphicsEngine.camera, pullback: 5, maxPullback: 40});
+top.gameCamera = new CameraTHREEJS({ camera: graphicsEngine.camera, pullback: 5, maxPullback: 40 });
 var cameraControls = new SimpleCameraControls({
     camera: gameCamera,
     speed: 1,
@@ -111,25 +111,22 @@ top.entitySystem = entitySystem;
 world.setSubsteps(4);
 world.graphicsEngine = graphicsEngine;
 
-var gravity = -0.5;
-for (var i = 0; i < 1; i++) {
-    var player = new Player({
-        radius: 1,
-        moveStrength: 0.5,
-        airMoveStrength: 0.1,
-        moveSpeed: 0.5,
-        jumpSpeed: 0.8,
-        gravity: new Vector3(0, gravity, 0),
-        position: new Vector3(0, 30, 0),
-        mass: 1,
-        graphicsEngine: graphicsEngine
-    });
-    top.player = player;
-    player.setMeshAndAddToScene({}, graphicsEngine);
-    entitySystem.register(player);
-    player.addToWorld(world);
-
-}
+var gravity = -0.4;
+var player = new Player({
+    radius: 1,
+    moveStrength: 0.5,
+    airMoveStrength: 0.2,
+    moveSpeed: 0.2,
+    jumpSpeed: 0.4,
+    gravity: new Vector3(0, gravity, 0),
+    position: new Vector3(0, 30, 0),
+    mass: 1,
+    graphicsEngine: graphicsEngine
+});
+top.player = player;
+player.setMeshAndAddToScene({}, graphicsEngine);
+entitySystem.register(player);
+player.addToWorld(world);
 
 
 var addParticle = function (position, damage) {
@@ -224,7 +221,7 @@ function render() {
         cameraControls.zoomIn();
     }
     //player.updateHealthTexture(player.composite.mesh, graphicsEngine);
-    
+
     cameraControls.updateZoom();
 
 
@@ -241,7 +238,7 @@ function render() {
         player.updateKeys(cameraControls.movement, cameraControls.justToggled, cameraControls.getDelta(graphicsEngine.camera));
         cameraControls.reset();
         player.update();
-        
+
 
     }
 
