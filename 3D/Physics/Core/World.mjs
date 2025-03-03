@@ -35,7 +35,7 @@ const World = class {
         this.setDeltaTime(1 / this.substeps);
     }
 
-    setIterations(iterations){
+    setIterations(iterations) {
         this.collisionDetector.iterations = iterations;
     }
 
@@ -92,17 +92,15 @@ const World = class {
         }
         for (var iter = 0; iter < this.substeps; iter++) {
             for (const comp of this.composites) {
-                if (comp.isMaxParent()) {
-                    comp.updateSleepAll();
-                }
-            }
-            for (const comp of this.composites) {
-                if(comp.sleeping){
+                if (comp.sleeping) {
                     continue;
                 }
                 if (comp.isMaxParent()) {
                     comp.updateBeforeCollisionAll();
                 }
+            }
+            for (const comp of this.composites) {
+                comp.updateSleepAll();
             }
             this.collisionDetector.handleAll(this.composites);
             this.collisionDetector.resolveAll();

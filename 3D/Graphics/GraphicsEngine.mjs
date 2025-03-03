@@ -56,7 +56,7 @@ var GraphicsEngine = class {
         this.composer.addPass(this.renderPass);
 
         this.n8aoPass = new N8AOPostPass(this.scene, this.camera, this.screenWidth, this.screenHeight);
-        this.n8aoPass.configuration.aoRadius = 1;
+        this.n8aoPass.configuration.aoRadius = 0.5;
         this.n8aoPass.renderToScreen = false;
         this.composer.addPass(this.n8aoPass);
         this.lights = [];

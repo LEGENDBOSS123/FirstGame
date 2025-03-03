@@ -48,6 +48,7 @@ var Player = class extends Entity {
         this.spawnPoint = this.sphere.global.body.position.copy();
         this.canJump = false;
         this.touchingGround = false;
+        this.groundVelocity = new Vector3();
         this.touchingWall = false;
         this.wallNormal = new Vector3();
 
@@ -59,10 +60,12 @@ var Player = class extends Entity {
                 if (contact.normal.dot(new Vector3(0, 1, 0)) > this.groundDetectDot) {
                     this.canJump = true;
                     this.touchingGround = true;
+                    this.groundVelocity = contact.velocity
                 }
                 if (Math.abs(contact.normal.dot(new Vector3(0, 1, 0))) < this.wallDetectDot) {
                     this.touchingWall = true;
                     this.wallNormal = contact.normal.copy();
+                    this.groundVelocity = contact.velocity;
                 }
             }
             else {
@@ -80,11 +83,12 @@ var Player = class extends Entity {
         this.postStepCallback = function () {
             var vel = this.composite.global.body.getVelocity();
             var velXZ = new Vector3(vel.x, 0, vel.z);
-
+            if(this.touchingGround) {
+                velXZ = this.groundVelocity
+            }
             if (velXZ.magnitudeSquared() < 0.0001) {
                 return;
             }
-
             this.composite.global.body.rotation = Quaternion.lookAt(velXZ.normalize(), new Vector3(0, 1, 0));
         }.bind(this);
 
@@ -93,6 +97,7 @@ var Player = class extends Entity {
             if(!this.sphere.sleeping){
                 this.touchingGround = false;
                 this.touchingWall = false;
+                this.canJump = false;
             }
         }.bind(this);
 
@@ -139,8 +144,6 @@ var Player = class extends Entity {
             this.composite.mesh = meshData;
             this.addToScene(graphicsEngine.scene);
         }.bind(this));
-        //this.sphere.setMeshAndAddToScene({}, graphicsEngine);
-
     }
 
     wasKeyJustPressed(key) {
@@ -167,15 +170,20 @@ var Player = class extends Entity {
 
     update() {
         var vel = this.composite.global.body.getVelocity();
-        var velHorizontal = vel.copy()
+        var velHorizontal = vel.copy();
         velHorizontal.y = 0;
+
         var vec = this.getKeysVector();
-        
         var vecHorizontal = vec.copy();
         vecHorizontal.y = 0;
         vecHorizontal.normalizeInPlace();
         
         var desiredVelocity = vecHorizontal.scale(this.moveSpeed);
+        if(this.touchingGround){
+            var groundVel = this.groundVelocity.copy();
+            groundVel.y = 0;
+            desiredVelocity.subtractInPlace(groundVel.subtract(velHorizontal));
+        }
         var velDelta = desiredVelocity.subtract(velHorizontal);
         var mag = velDelta.magnitude();
 
@@ -188,7 +196,7 @@ var Player = class extends Entity {
         if(mag > this.moveSpeed * moveStrength) {
             velDelta.scaleInPlace(this.moveSpeed * moveStrength/mag);
         }
-        if(this.wasKeyJustPressed("up") && this.touchingGround){
+        if(this.isKeyHeld("up") && this.touchingGround){
             velDelta.y = this.jumpSpeed;
         }
         this.composite.global.body.setVelocity(vel.add(velDelta));
@@ -201,7 +209,9 @@ var Player = class extends Entity {
         this.composite.global.body.rotation.reset();
         this.composite.global.body.netForce.reset();
         this.composite.global.body.netTorque.reset();
-        this.canJump = true;
+        this.canJump = false;
+        this.touchingWall = false;
+        this.touchingGround = false;
         this.composite.syncAll();
     }
 
@@ -214,6 +224,8 @@ var Player = class extends Entity {
         json.jumpSpeed = this.jumpSpeed;
         json.spawnPoint = this.spawnPoint.toJSON();
         json.canJump = this.canJump;
+        json.touchingWall = this.touchingWall;
+        json.touchingGround = this.touchingGround
         return json;
     }
 
@@ -226,6 +238,8 @@ var Player = class extends Entity {
         player.composite = json.composite;
         player.sphere = json.sphere;
         player.canJump = json.canJump;
+        player.touchingGround = json.touchingGround;
+        player.touchingWall = json.touchingWall;
         return player;
     }
 

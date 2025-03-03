@@ -54,11 +54,10 @@ graphicsEngine.setBackgroundImage("3D/Graphics/Textures/autumn_field_puresky_8k.
 
 graphicsEngine.setSunlightDirection(new Vector3(-2, -8, -5));
 graphicsEngine.setSunlightBrightness(1);
-graphicsEngine.disableAO();
+// graphicsEngine.disableAO();
 // graphicsEngine.disableShadows();
-
-graphicsEngine.renderDistance = 2048;
-graphicsEngine.cameraFar = 4096;
+graphicsEngine.renderDistance = 1600;
+graphicsEngine.cameraFar = 2000;
 window.graphicsEngine = graphicsEngine;
 
 
@@ -109,6 +108,8 @@ top.world = world;
 top.entitySystem = entitySystem;
 
 world.setSubsteps(4);
+world.setIterations(16);
+
 world.graphicsEngine = graphicsEngine;
 
 var gravity = -0.4;
