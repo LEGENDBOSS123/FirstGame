@@ -157,13 +157,13 @@ for(const obj of map.objects){
     world.addComposite(obj);
     obj.addToScene(graphicsEngine.scene);
     if(obj.name.toLowerCase().includes("start")){
-        player.spawnPoint = obj.global.body.position.copy();
+        player.setStartPoint(obj.global.body.position);
         player.respawn();
     }
     if(obj.name.toLowerCase().includes("start") || obj.name.toLowerCase().includes("checkpoint")){
         obj.addEventListener("postCollision", function(contact){
             if(contact.body1.maxParent == player.getMainShape().maxParent || contact.body2.maxParent == player.getMainShape().maxParent){
-                player.spawnPoint = obj.global.body.position.copy();
+                player.setSpawnPoint(obj.global.body.position);
             }
         })
     }
@@ -211,7 +211,6 @@ function render() {
     if (keyListener.isHeld("KeyI")) {
         cameraControls.zoomIn();
     }
-    //player.updateHealthTexture(player.composite.mesh, graphicsEngine);
 
     cameraControls.updateZoom();
 

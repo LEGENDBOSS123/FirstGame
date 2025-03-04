@@ -114,6 +114,23 @@ var Player = class extends Entity {
         this.keysVector = new Vector3();
     }
 
+    setStartPoint(v){
+        var startPoint = localStorage["playerStartPoint"];
+        if(!startPoint){
+            localStorage["playerStartPoint"] = JSON.stringify(v.toJSON());
+        }
+        else{
+            v = Vector3.from(JSON.parse(startPoint));
+        }
+
+        this.spawnPoint = v.copy();
+    }
+
+    setSpawnPoint(v){
+        this.spawnPoint = v.copy();
+        localStorage["playerStartPoint"] = JSON.stringify(v.toJSON());
+    }
+
     addToScene(scene) {
         this.composite.addToScene(scene);
         this.sphere.addToScene(scene);
