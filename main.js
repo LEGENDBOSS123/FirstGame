@@ -161,7 +161,8 @@ for(const obj of map.objects){
         player.respawn();
     }
     if(obj.name.toLowerCase().includes("start") || obj.name.toLowerCase().includes("checkpoint")){
-        obj.addEventListener("postCollision", function(contact){
+        obj.isSensor = true;
+        obj.addEventListener("collision", function(contact){
             if(contact.body1.maxParent == player.getMainShape().maxParent || contact.body2.maxParent == player.getMainShape().maxParent){
                 player.setSpawnPoint(obj.global.body.position);
             }

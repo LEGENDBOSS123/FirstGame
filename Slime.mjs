@@ -69,7 +69,7 @@ var Slime = class extends HealthEntity {
         this.onDelete = function (x) {
             console.log("e", x)
         }.bind(this);
-        this.sphere.addEventListener("postCollision", this.spherePostCollision);
+        this.sphere.addEventListener("collision", this.spherePostCollision);
         this.sphere.addEventListener("delete", this.onDelete);
         this.updateShapeID(this.sphere);
     }
@@ -176,7 +176,7 @@ var Slime = class extends HealthEntity {
 
     updateReferences(world) {
         this.sphere = world.getByID(this.sphere);
-        this.sphere.addEventListener("postCollision", this.spherePostCollision);
+        this.sphere.addEventListener("collision", this.spherePostCollision);
         this.sphere.addEventListener("delete", this.onDelete);
     }
 

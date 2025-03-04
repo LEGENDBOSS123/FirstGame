@@ -56,6 +56,9 @@ var Player = class extends Entity {
         this.wallDetectDot = 0.25;
 
         this.jumpPostCollision = function (contact) {
+            if(contact.invalid){
+                return;
+            }
             if (contact.body1.maxParent == this.composite) {
                 if (contact.normal.dot(new Vector3(0, 1, 0)) > this.groundDetectDot) {
                     this.canJump = true;
@@ -102,7 +105,7 @@ var Player = class extends Entity {
             }
         }.bind(this);
 
-        this.sphere.addEventListener("postCollision", this.jumpPostCollision);
+        this.sphere.addEventListener("collision", this.jumpPostCollision);
         this.sphere.addEventListener("preStep", this.preStepCallback);
 
         this.composite.addEventListener("postStep", this.postStepCallback);
@@ -265,7 +268,7 @@ var Player = class extends Entity {
     updateReferences(world) {
         this.composite = world.getByID(this.composite);
         this.sphere = world.getByID(this.sphere);
-        this.sphere.addEventListener("postCollision", this.jumpPostCollision);
+        this.sphere.addEventListener("collision", this.jumpPostCollision);
         this.composite.addEventListener("postStep", this.postStepCallback);
         this.sphere.addEventListener("preStep", this.preStepCallback);
     }
