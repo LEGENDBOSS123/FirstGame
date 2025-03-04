@@ -217,6 +217,10 @@ function render() {
 
 
     stepper.job = function () {
+        player.updateKeys(cameraControls.movement, cameraControls.justToggled, cameraControls.getDelta(graphicsEngine.camera));
+        cameraControls.reset();
+        player.update();
+
         stats2.begin();
         previousWorld = world.toJSON();
         top.previousWorld = previousWorld;
@@ -224,13 +228,6 @@ function render() {
         world.step();
 
         stats2.end();
-
-
-        player.updateKeys(cameraControls.movement, cameraControls.justToggled, cameraControls.getDelta(graphicsEngine.camera));
-        cameraControls.reset();
-        player.update();
-
-
     }
 
     graphicsEngine.update(previousWorld || world, world, stepper.getLerpAmount());

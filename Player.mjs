@@ -201,7 +201,7 @@ var Player = class extends Entity {
             velDelta.y = this.jumpSpeed;
             this.canJump = false;
         }
-        this.composite.global.body.setVelocity(vel.add(velDelta));
+        this.composite.global.body.previousPosition.subtractInPlace(velDelta);
     }
 
     respawn() {
