@@ -52,8 +52,8 @@ var Player = class extends Entity {
         this.touchingWall = false;
         this.wallNormal = new Vector3();
 
-        this.groundDetectDot = 0.75;
-        this.wallDetectDot = 0.3;
+        this.groundDetectDot = 0.9;
+        this.wallDetectDot = 0.25;
 
         this.jumpPostCollision = function (contact) {
             if (contact.body1.maxParent == this.composite) {
@@ -83,11 +83,13 @@ var Player = class extends Entity {
         this.postStepCallback = function () {
             var vel = this.composite.global.body.getVelocity();
             var velXZ = new Vector3(vel.x, 0, vel.z);
-            if(this.touchingGround) {
-                velXZ = this.groundVelocity
-            }
+            var velXZ2 = this.groundVelocity;
+            
             if (velXZ.magnitudeSquared() < 0.0001) {
                 return;
+            }
+            if(this.touchingGround) {
+                velXZ = velXZ2;
             }
             this.composite.global.body.rotation = Quaternion.lookAt(velXZ.normalize(), new Vector3(0, 1, 0));
         }.bind(this);
@@ -97,7 +99,6 @@ var Player = class extends Entity {
             if(!this.sphere.sleeping){
                 this.touchingGround = false;
                 this.touchingWall = false;
-                this.canJump = false;
             }
         }.bind(this);
 
@@ -196,8 +197,9 @@ var Player = class extends Entity {
         if(mag > this.moveSpeed * moveStrength) {
             velDelta.scaleInPlace(this.moveSpeed * moveStrength/mag);
         }
-        if(this.isKeyHeld("up") && this.touchingGround){
+        if(this.isKeyHeld("up") && this.canJump){
             velDelta.y = this.jumpSpeed;
+            this.canJump = false;
         }
         this.composite.global.body.setVelocity(vel.add(velDelta));
     }

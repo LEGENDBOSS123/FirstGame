@@ -54,7 +54,7 @@ graphicsEngine.setBackgroundImage("3D/Graphics/Textures/autumn_field_puresky_8k.
 
 graphicsEngine.setSunlightDirection(new Vector3(-2, -8, -5));
 graphicsEngine.setSunlightBrightness(1);
-// graphicsEngine.disableAO();
+graphicsEngine.disableAO();
 // graphicsEngine.disableShadows();
 graphicsEngine.renderDistance = 1600;
 graphicsEngine.cameraFar = 2000;
@@ -152,38 +152,21 @@ var addParticle = function (position, damage) {
 top.addParticle = addParticle;
 
 
-// for (var i = 0; i < 1; i++) {
-//     graphicsEngine.load('example.glb', function (gltf) {
-//         gltf.scene.castShadow = true;
-//         gltf.scene.receiveShadow = true;
-//         gltf.scene.traverse(function (child) {
-//             child = child.clone();
-//             child.castShadow = true;
-//             child.receiveShadow = true;
-//             if (child.isMesh) {
-//                 child.material.depthWrite = true;
-
-//             }
-//             if (child.isMesh) {
-//                 var poly = new Polyhedron({ local: { body: { mass: 1 } } }).fromMesh(child, graphicsEngine);
-//                 poly.setRestitution(0);
-//                 poly.setFriction(0);
-//                 poly.mesh = graphicsEngine.meshLinker.createMeshData(child);
-//                 poly.addToScene(graphicsEngine.scene);
-//                 poly.setLocalFlag(Composite.FLAGS.STATIC, true);
-//                 top.e = child;
-//                 world.addComposite(poly);
-//                 top.poly = poly;
-//             }
-//         });
-//         player.respawn();
-//     });
-// }
-
-var map = await graphicsEngine.loadMap("example.glb");
-for(var obj of map.objects){
+var map = await graphicsEngine.loadMap("map.glb");
+for(const obj of map.objects){
     world.addComposite(obj);
     obj.addToScene(graphicsEngine.scene);
+    if(obj.name.toLowerCase().includes("start")){
+        player.spawnPoint = obj.global.body.position.copy();
+        player.respawn();
+    }
+    if(obj.name.toLowerCase().includes("start") || obj.name.toLowerCase().includes("checkpoint")){
+        obj.addEventListener("postCollision", function(contact){
+            if(contact.body1.maxParent == player.getMainShape().maxParent || contact.body2.maxParent == player.getMainShape().maxParent){
+                player.spawnPoint = obj.global.body.position.copy();
+            }
+        })
+    }
 }
 for(var mesh of map.meshes){
     graphicsEngine.addToScene(mesh);

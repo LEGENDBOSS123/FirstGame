@@ -7,6 +7,7 @@ const WorldObject = class {
     constructor(options) {
         this.id = options?.id ?? -1;
         this.type = ClassRegistry.getTypeFromName(this.constructor.name);
+        this.name = options?.name ?? "";
         this.world = options?.world ?? null;
 
         this.events = {};

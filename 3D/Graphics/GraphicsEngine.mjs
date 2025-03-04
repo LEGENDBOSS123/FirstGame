@@ -238,9 +238,10 @@ var GraphicsEngine = class {
                     }
 
                     if (!invalidShape) {
-                        var obj = new shape().fromMesh(child, this);
+                        var obj = new shape({
+                            name: child.name
+                        }).fromMesh(child, this);
                         obj.mesh = this.meshLinker.createMeshData(child);
-                        //obj.setMesh({}, graphicsEngine);
                         obj.setLocalFlag(Composite.FLAGS.STATIC, true);
                         map.objects.push(obj);
                     }

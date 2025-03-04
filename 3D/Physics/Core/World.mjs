@@ -14,7 +14,7 @@ const World = class {
         this.inverseDeltaTime = 1 / this.deltaTime;
 
         this.substeps = options?.substeps ?? 1;
-
+        this.stepCount = options?.stepCount ?? 0;
         this.all = options?.all ?? {};
         this.constraints = options?.constraints ?? [];
         this.composites = options?.composites ?? [];
@@ -126,6 +126,7 @@ const World = class {
                 this.removeConstraint(cons);
             }
         }
+        this.stepCount++;
     }
 
     getByID(id) {
@@ -140,6 +141,7 @@ const World = class {
         world.deltaTimeSquared = this.deltaTimeSquared;
         world.inverseDeltaTime = this.inverseDeltaTime;
         world.substeps = this.substeps;
+        world.stepCount = this.stepCount;
         world.all = {};
         world.composites = [];
         world.constraints = [];
@@ -170,6 +172,7 @@ const World = class {
         world.deltaTimeSquared = json.deltaTimeSquared;
         world.inverseDeltaTime = json.inverseDeltaTime;
         world.substeps = json.substeps;
+        world.stepCount = json.stepCount;
         world.all = {};
 
         for (var i in json.all) {
