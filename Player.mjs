@@ -249,25 +249,9 @@ var Player = class extends Entity {
         if(mag > this.moveSpeed * moveStrength) {
             velDelta.scaleInPlace(this.moveSpeed * moveStrength/mag);
         }
-        if(this.isKeyHeld("up") && this.canJump && !this.touchingWall){
+        if(this.isKeyHeld("up") && this.canJump){
             velDelta.y = this.jumpSpeed;
             this.canJump = false;
-        }
-        this.composite.global.body.acceleration = this.gravity.copy();
-        if(this.touchingWall){
-            this.composite.global.body.acceleration.reset();
-            this.composite.global.body.previousPosition.y = this.composite.global.body.position.y;
-            this.composite.global.body.previousPosition.addInPlace(this.wallNormal.scale(0.2));
-        }
-        if(this.isKeyHeld("up") && (this.canJump || this.touchingWall)){
-            velDelta.y = this.jumpSpeed;
-            velDelta.addInPlace(this.wallNormal.scale(0.3));
-            this.composite.global.body.previousPosition.subtractInPlace(this.wallNormal.scale(0.2));
-            this.canJump = false;
-        }
-        if(!this.touchingWall){
-            this.composite.global.body.previousPosition.subtractInPlace(this.wallNormal.scale(0.2));
-            this.wallNormal.reset();
         }
         this.composite.global.body.previousPosition.subtractInPlace(velDelta);
     }
