@@ -3,6 +3,7 @@ import Sphere from "./3D/Physics/Shapes/Sphere.mjs";
 import Vector3 from "./3D/Physics/Math3D/Vector3.mjs";
 import Entity from "./Entity.mjs";
 import Quaternion from "./3D/Physics/Math3D/Quaternion.mjs";
+// import Capsule from "./3D/Physics/Shapes/Capsule.mjs";
 var Player = class extends Entity {
     constructor(options) {
         super(options);
@@ -26,7 +27,25 @@ var Player = class extends Entity {
             }
         });
         this.sphere = new Sphere({
-            radius: (options?.radius ?? 1),
+            radius: 0.5 * (options?.radius ?? 1),
+            local: {
+                body: {
+                    position: new Vector3(0, -0.5 * (options?.radius ?? 1), 0),
+                    mass: options?.mass ?? 1
+                }
+            }
+        });
+        this.sphere2 = new Sphere({
+            radius: 0.5 * (options?.radius ?? 1),
+            local: {
+                body: {
+                    position: new Vector3(0, 0.5 * (options?.radius ?? 1), 0),
+                    mass: options?.mass ?? 1
+                }
+            }
+        });
+        this.sphere3 = new Sphere({
+            radius: 0.5 * (options?.radius ?? 1),
             local: {
                 body: {
                     mass: options?.mass ?? 1
@@ -35,8 +54,14 @@ var Player = class extends Entity {
         });
 
         this.composite.add(this.sphere);
+        this.composite.add(this.sphere2);
+        this.composite.add(this.sphere3);
         this.sphere.collisionMask = 0;
         this.sphere.collisionMask = this.sphere.setBitMask(this.sphere.collisionMask, "P", true);
+        this.sphere2.collisionMask = 0;
+        this.sphere2.collisionMask = this.sphere2.setBitMask(this.sphere2.collisionMask, "P", true);
+        this.sphere3.collisionMask = 0;
+        this.sphere3.collisionMask = this.sphere2.setBitMask(this.sphere2.collisionMask, "P", true);
 
 
         this.composite.setLocalFlag(Composite.FLAGS.CENTER_OF_MASS, true);
@@ -52,7 +77,7 @@ var Player = class extends Entity {
         this.touchingWall = false;
         this.wallNormal = new Vector3();
 
-        this.groundDetectDot = 0.9;
+        this.groundDetectDot = 0.75;
         this.wallDetectDot = 0.25;
 
         this.jumpPostCollision = function (contact) {
@@ -137,18 +162,22 @@ var Player = class extends Entity {
     addToScene(scene) {
         this.composite.addToScene(scene);
         this.sphere.addToScene(scene);
+        this.sphere2.addToScene(scene);
+        this.sphere3.addToScene(scene);
     }
 
     addToWorld(world) {
         world.addComposite(this.composite);
         world.addComposite(this.sphere);
+        world.addComposite(this.sphere2);
+        world.addComposite(this.sphere3);
         this.updateShapeID();
     }
 
     setMeshAndAddToScene(options, graphicsEngine) {
 
         graphicsEngine.load("roblox_default_character.glb").then(function (gltf) {
-            gltf.scene.scale.set(...(new Vector3(0.4, 0.4, 0.4).scale(this.sphere.radius)));
+            gltf.scene.scale.set(...(new Vector3(0.4, 0.4, 0.4).scale(this.sphere.radius * 1.95)));
             gltf.scene.children[0].quaternion.copy(Quaternion.from(gltf.scene.children[0].quaternion).rotateByAngularVelocity(new Vector3(0, 2, 0)));
             for (var e of gltf.scene.children) {
                 e.position.z -= 6.65;
@@ -165,6 +194,9 @@ var Player = class extends Entity {
             this.composite.mesh = meshData;
             this.addToScene(graphicsEngine.scene);
         }.bind(this));
+        // this.sphere.setMeshAndAddToScene({}, graphicsEngine);
+        // this.sphere2.setMeshAndAddToScene({}, graphicsEngine);
+        // this.sphere3.setMeshAndAddToScene({}, graphicsEngine);
     }
 
     wasKeyJustPressed(key) {
@@ -217,9 +249,25 @@ var Player = class extends Entity {
         if(mag > this.moveSpeed * moveStrength) {
             velDelta.scaleInPlace(this.moveSpeed * moveStrength/mag);
         }
-        if(this.isKeyHeld("up") && this.canJump){
+        if(this.isKeyHeld("up") && this.canJump && !this.touchingWall){
             velDelta.y = this.jumpSpeed;
             this.canJump = false;
+        }
+        this.composite.global.body.acceleration = this.gravity.copy();
+        if(this.touchingWall){
+            this.composite.global.body.acceleration.reset();
+            this.composite.global.body.previousPosition.y = this.composite.global.body.position.y;
+            this.composite.global.body.previousPosition.addInPlace(this.wallNormal.scale(0.2));
+        }
+        if(this.isKeyHeld("up") && (this.canJump || this.touchingWall)){
+            velDelta.y = this.jumpSpeed;
+            velDelta.addInPlace(this.wallNormal.scale(0.3));
+            this.composite.global.body.previousPosition.subtractInPlace(this.wallNormal.scale(0.2));
+            this.canJump = false;
+        }
+        if(!this.touchingWall){
+            this.composite.global.body.previousPosition.subtractInPlace(this.wallNormal.scale(0.2));
+            this.wallNormal.reset();
         }
         this.composite.global.body.previousPosition.subtractInPlace(velDelta);
     }

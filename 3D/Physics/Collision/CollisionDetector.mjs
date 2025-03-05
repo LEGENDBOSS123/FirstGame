@@ -145,7 +145,7 @@ const CollisionDetector = class {
         }
 
         for (const contact of this.contacts) {
-            if(contact.invalid){
+            if (contact.invalid) {
                 continue;
             }
             contact.body1Map.penetrationSum += contact.penetration.magnitudeSquared();
@@ -155,7 +155,7 @@ const CollisionDetector = class {
         }
 
         for (const contact of this.contacts) {
-            if(contact.invalid){
+            if (contact.invalid) {
                 contact.body1.dispatchEvent("collision", [contact]);
                 contact.body2.dispatchEvent("collision", [contact]);
                 continue;
@@ -184,88 +184,52 @@ const CollisionDetector = class {
         this.contacts.length = 0;
     }
 
-    clampPointToAABB(v, aabb, dimensions2) {
-        const dimensions = dimensions2 ?? new Vector3(aabb.width, aabb.height, aabb.depth).scale(0.5);
-        if (v.x < -dimensions.x) {
-            v.x = -dimensions.x;
+    clampPointToAABB(v, aabb) {
+        v = v.copy();
+        const x = aabb.width * 0.5;
+        const y = aabb.height * 0.5;
+        const z = aabb.depth * 0.5;
+        if (v.x < -x) {
+            v.x = -x;
         }
-        else if (v.x > dimensions.x) {
-            v.x = dimensions.x;
+        else if (v.x > x) {
+            v.x = x;
         }
-        if (v.y < -dimensions.y) {
-            v.y = -dimensions.y;
+        if (v.y < -y) {
+            v.y = -y;
         }
-        else if (v.y > dimensions.y) {
-            v.y = dimensions.y;
+        else if (v.y > y) {
+            v.y = y;
         }
-        if (v.z < -dimensions.z) {
-            v.z = -dimensions.z;
+        if (v.z < -z) {
+            v.z = -z;
         }
-        else if (v.z > dimensions.z) {
-            v.z = dimensions.z;
+        else if (v.z > z) {
+            v.z = z;
         }
         return v;
     }
-    // closestPointOnTriangle(p, a, b, c) {
-    //     var ab = b.subtract(a);
-    //     var ac = c.subtract(a);
-    //     var ap = p.subtract(a);
 
-    //     var d1 = ab.dot(ap);
-    //     var d2 = ac.dot(ap);
+    closestPointToAABB(v, aabb, clamped = this.clampPointToAABB(v, aabb)) {
+        v = v.copy();
+        const x = aabb.width * 0.5;
+        const y = aabb.height * 0.5;
+        const z = aabb.depth * 0.5;
+        var dx = Math.abs(v.x - x);
+        var dy = Math.abs(v.y - y);
+        var dz = Math.abs(v.z - z);
 
-    //     if (d1 <= 0 && d2 <= 0) return a;
+        var min_dist = Math.min(dx, dy, dz);
+        if (min_dist === dx) {
+            clamped.x = v.x > 0 ? x : -x;
+        } else if (min_dist === dy) {
+            clamped.y = v.y > 0 ? y : -y;
+        } else {
+            clamped.z = v.z > 0 ? z : -z;
+        }
+        return clamped;
+    }
 
-    //     var bp = p.subtract(b);
-    //     var d3 = ab.dot(bp);
-    //     var d4 = ac.dot(bp);
-    //     if (d3 >= 0 && d4 <= d3) return b
-
-    //     var cp = p.subtract(c);
-    //     var d5 = ab.dot(cp);
-    //     var d6 = ac.dot(cp);
-    //     if (d6 >= 0 && d5 <= d6) return c;
-
-    //     var vc = d1 * d4 - d3 * d2;
-    //     if (vc <= 0 && d1 >= 0 && d3 <= 0) {
-    //         var v = d1 / (d1 - d3);
-    //         return a.add(ab.scale(v));
-    //     }
-
-    //     var vb = d5 * d2 - d1 * d6;
-    //     if (vb <= 0 && d2 >= 0 && d6 <= 0) {
-    //         var w = d2 / (d2 - d6);
-    //         return a.add(ac.scale(w));
-    //     }
-
-    //     var va = d3 * d6 - d5 * d4;
-    //     if (va <= 0 && (d4 - d3) >= 0 && (d5 - d6) >= 0) {
-    //         var w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
-    //         return b.add(c.subtract(b).scale(w));
-    //     }
-
-    //     var denom = 1 / (va + vb + vc);
-    //     var v = vb * denom;
-    //     var w = vc * denom;
-    //     return a.add(ab.scale(v)).add(ac.scale(w));
-    // }
-
-    // horizontalRayIntersectsTriangle(orig, a, b, c) {
-    //     var EPSILON = 1e-4;
-    //     var edge1 = b.subtract(a);
-    //     var edge2 = c.subtract(a);
-    //     var aDot = - edge2.z * edge1.y + edge2.y * edge1.z;
-    //     if (Math.abs(aDot) < EPSILON) return false;
-    //     var f = 1 / aDot;
-    //     var s = orig.subtract(a);
-    //     var u = f * (s.z * edge2.y - s.y * edge2.z);
-    //     if (u < 0 || u >= 1) return false;
-    //     var q = s.cross(edge1);
-    //     var v = f * q.x;
-    //     if (v < 0 || (u + v) >= 1) return false;
-    //     var t = f * edge2.dot(q);
-    //     return t > EPSILON;
-    // }
     closestPointOnTriangle(p, a, b, c) {
         const abx = b.x - a.x
         const aby = b.y - a.y;
@@ -474,8 +438,6 @@ const CollisionDetector = class {
     }
 
     handleSphereBox(sphere, box) {
-
-
         var spherePos = null;
         var closestPoint = null;
         var minDistanceSquared = Infinity;
@@ -492,27 +454,11 @@ const CollisionDetector = class {
             minDistanceSquared = Infinity;
             inside = false;
 
-            const clampedPoint = this.clampPointToAABB(relativePos.copy(), box);
+            const clampedPoint = this.clampPointToAABB(relativePos, box);
             inside = clampedPoint.equals(relativePos);
 
             if (inside) {
-                var half_x = box.width * 0.5;
-                var half_y = box.height * 0.5;
-                var half_z = box.depth * 0.5;
-                var dx = Math.abs(relativePos.x - half_x);
-                var dy = Math.abs(relativePos.y - half_y);
-                var dz = Math.abs(relativePos.z - half_z);
-
-                var min_dist = Math.min(dx, dy, dz);
-                var clamped2 = clampedPoint.copy();
-                if (min_dist === dx) {
-                    clamped2.x = relativePos.x > 0 ? half_x : -half_x;
-                } else if (min_dist === dy) {
-                    clamped2.y = relativePos.y > 0 ? half_y : -half_y;
-                } else {
-                    clamped2.z = relativePos.z > 0 ? half_z : -half_z;
-                }
-                closestPoint = clamped2;
+                closestPoint = this.closestPointToAABB(relativePos, box, clampedPoint);
             }
             else {
                 closestPoint = clampedPoint;
