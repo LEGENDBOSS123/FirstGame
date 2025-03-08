@@ -1,9 +1,9 @@
-import Composite from "./3D/Physics/Shapes/Composite.mjs";
-import Sphere from "./3D/Physics/Shapes/Sphere.mjs";
-import Vector3 from "./3D/Physics/Math3D/Vector3.mjs";
+import Composite from "../Physics/Shapes/Composite.mjs";
+import Sphere from "../Physics/Shapes/Sphere.mjs";
+import Vector3 from "../Physics/Math3D/Vector3.mjs";
 import Entity from "./Entity.mjs";
-import Quaternion from "./3D/Physics/Math3D/Quaternion.mjs";
-// import Capsule from "./3D/Physics/Shapes/Capsule.mjs";
+import Quaternion from "../Physics/Math3D/Quaternion.mjs";
+
 var Player = class extends Entity {
     constructor(options) {
         super(options);
@@ -27,25 +27,25 @@ var Player = class extends Entity {
             }
         });
         this.sphere = new Sphere({
-            radius: 0.5 * (options?.radius ?? 1),
+            radius: 0.5 * (options?.size ?? 1),
             local: {
                 body: {
-                    position: new Vector3(0, -0.5 * (options?.radius ?? 1), 0),
+                    position: new Vector3(0, -0.5 * (options?.size ?? 1), 0),
                     mass: options?.mass ?? 1
                 }
             }
         });
         this.sphere2 = new Sphere({
-            radius: 0.5 * (options?.radius ?? 1),
+            radius: 0.5 * (options?.size ?? 1),
             local: {
                 body: {
-                    position: new Vector3(0, 0.5 * (options?.radius ?? 1), 0),
+                    position: new Vector3(0, 0.5 * (options?.size ?? 1), 0),
                     mass: options?.mass ?? 1
                 }
             }
         });
         this.sphere3 = new Sphere({
-            radius: 0.5 * (options?.radius ?? 1),
+            radius: 0.5 * (options?.size ?? 1),
             local: {
                 body: {
                     mass: options?.mass ?? 1
@@ -192,7 +192,7 @@ var Player = class extends Entity {
             })
             var meshData = graphicsEngine.meshLinker.createMeshData(gltf.scene);
             this.composite.mesh = meshData;
-            this.addToScene(graphicsEngine.scene);
+            this.composite.addToScene(graphicsEngine.scene);
         }.bind(this));
         // this.sphere.setMeshAndAddToScene({}, graphicsEngine);
         // this.sphere2.setMeshAndAddToScene({}, graphicsEngine);

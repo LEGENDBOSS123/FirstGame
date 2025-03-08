@@ -1,8 +1,10 @@
 import Vector3 from "./Physics/Math3D/Vector3.mjs";
 
-var SimpleCameraControls = class {
+const SimpleCameraControls = class {
     constructor(options) {
         this.speed = options?.speed ?? 1;
+        this.keybinds = options?.keybinds ?? {};
+        this.keysheld = {};
         this.movement = { forward: false, backward: false, left: false, right: false, up: false, down: false, zoomIn: false, zoomOut: false };
         this.previousMovement = structuredClone(this.movement);
         this.justToggled = structuredClone(this.movement);
@@ -26,6 +28,13 @@ var SimpleCameraControls = class {
         this.window = options?.window || window;
         this.document = options?.document || document;
         this.renderDomElement = options?.renderDomElement || document.body;
+        
+        this.renderDomElement.addEventListener('keydown', function (e) {
+            this.keysheld[e.code] = true;
+        }.bind(this));
+        this.renderDomElement.addEventListener('keyup', function (e) {
+            this.keysheld[e.code] = false;
+        }.bind(this));
 
         this.window.addEventListener('mousedown', function (e) {
             this.isDragging = true;
@@ -81,53 +90,39 @@ var SimpleCameraControls = class {
             }
         }.bind(this));
     }
-    up() {
-        this.movement.up = true;
-        if(this.movement.up != this.previousMovement.up){
-            this.justToggled.up = true;
-        }
+
+    isHeld(key) {
+        return this.keysheld[key] || false;
     }
-    down() {
-        this.movement.down = true;
-        if(this.movement.down != this.previousMovement.down){
-            this.justToggled.down = true;
-        }
-    }
-    left() {
-        this.movement.left = true;
-        if(this.movement.left != this.previousMovement.left){
-            this.justToggled.left = true;
-        }
-    }
-    right() {
-        this.movement.right = true;
-        if(this.movement.right != this.previousMovement.right){
-            this.justToggled.right = true;
-        }
-    }
-    forward() {
-        this.movement.forward = true;
-        if(this.movement.forward != this.previousMovement.forward){
-            this.justToggled.forward = true;
-        }
-    }
-    backward() {
-        this.movement.backward = true;
-        if(!this.movement.backward != this.previousMovement.backward){
-            this.justToggled.backward = true;
+
+    addKeyBinds(keybinds) {
+        for (const keyCode in keybinds) {
+            this.keybinds[keyCode] = keybinds[keyCode];
         }
     }
 
-    zoomIn() {
-        this.movement.zoomIn = true;
+    addAction(name){
+        this.movement[name] = false;
+        this.previousMovement[name] = false;
+        this.justToggled[name] = false;
     }
 
-    zoomOut() {
-        this.movement.zoomOut = true;
+    addActions(names){
+        for (const name in names) {
+            this.addAction(name);
+        }
     }
+
+    processAction(action){
+        this.movement[action] = true;
+        if (this.movement[action] != this.previousMovement[action]) {
+            this.justToggled[action] = true;
+        }
+    }
+
 
     reset() {
-        for(var move in this.movement){
+        for (const move in this.movement) {
             this.justToggled[move] = !this.movement[move] && this.previousMovement[move];
             this.previousMovement[move] = this.movement[move];
             this.movement[move] = false;
@@ -139,7 +134,7 @@ var SimpleCameraControls = class {
 
         direction.y = 0;
         direction = direction.normalize()
-        var delta = new Vector3(0, 0, 0);
+        const delta = new Vector3(0, 0, 0);
         if (this.movement.forward) {
             delta.addInPlace(direction);
         }
@@ -162,6 +157,14 @@ var SimpleCameraControls = class {
         delta.normalize();
         delta.scale(this.speed);
         return Vector3.from(delta);
+    }
+
+    update(){
+        for(const key in this.keybinds){
+            if(this.isHeld(key)){
+                this.processAction(this.keybinds[key]);
+            }
+        }
     }
 
     updateZoom() {

@@ -1,35 +1,20 @@
 import Vector3 from "./3D/Physics/Math3D/Vector3.mjs";
-import Matrix3 from "./3D/Physics/Math3D/Matrix3.mjs";
-import Hitbox3 from "./3D/Physics/Broadphase/Hitbox3.mjs";
-import Quaternion from "./3D/Physics/Math3D/Quaternion.mjs";
-import Triangle from "./3D/Physics/Shapes/Triangle.mjs";
-import PhysicsBody3 from "./3D/Physics/Core/PhysicsBody3.mjs";
-import Material from "./3D/Physics/Collision/Material.mjs";
-import Composite from "./3D/Physics/Shapes/Composite.mjs";
-import Sphere from "./3D/Physics/Shapes/Sphere.mjs";
-import Box from "./3D/Physics/Shapes/Box.mjs";
-import Polyhedron from "./3D/Physics/Shapes/Polyhedron.mjs";
-import Point from "./3D/Physics/Shapes/Point.mjs";
-import Terrain3 from "./3D/Physics/Shapes/Terrain3.mjs";
-import SpatialHash from "./3D/Physics/Broadphase/SpatialHash.mjs";
 import World from "./3D/Physics/Core/World.mjs";
-import CollisionContact from "./3D/Physics/Collision/CollisionContact.mjs";
-import CollisionDetector from "./3D/Physics/Collision/CollisionDetector.mjs";
+
 import SimpleCameraControls from "./3D/SimpleCameraControls.mjs";
 import CameraTHREEJS from "./3D/CameraTHREEJS.mjs";
-import Player from "./Player.mjs";
+import Player from "./3D/Entity/Player.mjs"
 import Keysheld from "./3D/Web/Keysheld.mjs";
 
 import Stats from "./3D/Web/Stats.mjs";
 import GraphicsEngine from "./3D/Graphics/GraphicsEngine.mjs";
 
 import * as THREE from "three";
-import Target from "./Target.mjs";
-import EntitySystem from "./EntitySystem.mjs";
-import Timer from "./Timer.mjs";
-import ParticleSystem from "./ParticleSystem.mjs";
-import Particle from "./Particle.mjs";
-import TextParticle from "./TextParticle.mjs";
+import EntitySystem from "./3D/Entity/EntitySystem.mjs";
+import Timer from "./3D/Physics/Core/Timer.mjs";
+import ParticleSystem from "./3D/Graphics/Particle/ParticleSystem.mjs";
+import Particle from "./3D/Graphics/Particle/Particle.mjs";
+import TextParticle from "./3D/Graphics/Particle/TextParticle.mjs";
 import DistanceConstraint from "./3D/Physics/Collision/DistanceConstraint.mjs";
 var stats = new Stats();
 var stats2 = new Stats();
@@ -50,19 +35,17 @@ var graphicsEngine = new GraphicsEngine({
 
 graphicsEngine.ambientLight.intensity = 1;
 
-graphicsEngine.setBackgroundImage("3D/Graphics/Textures/autumn_field_puresky_8k.hdr", true, false);
+graphicsEngine.setBackgroundImage("autumn_field_puresky_8k.hdr", true, false);
 
 graphicsEngine.setSunlightDirection(new Vector3(-2, -8, -5));
 graphicsEngine.setSunlightBrightness(1);
 graphicsEngine.disableAO();
-// graphicsEngine.disableShadows();
 graphicsEngine.renderDistance = 1600;
 graphicsEngine.cameraFar = 2000;
 window.graphicsEngine = graphicsEngine;
 
 
 
-top.gameCamera = new CameraTHREEJS({ camera: graphicsEngine.camera, pullback: 5, maxPullback: 40 });
 var cameraControls = new SimpleCameraControls({
     camera: gameCamera,
     speed: 1,
@@ -82,6 +65,24 @@ var cameraControls = new SimpleCameraControls({
     document: document,
     renderDomElement: document.body
 });
+
+cameraControls.addKeyBinds(
+    {
+        ArrowUp: "forward",
+        KeyW: "forward",
+        ArrowDown: "backward",
+        KeyS: "backward",
+        ArrowLeft: "left",
+        KeyA: "left",
+        ArrowRight: "right",
+        KeyD: "right",
+        Space: "up",
+        ShiftLeft: "down",
+        ShiftRight: "down",
+        KeyO: "zoomOut",
+        KeyI: "zoomIn"
+    }
+);
 
 
 var keyListener = new Keysheld(window);
@@ -114,7 +115,7 @@ world.graphicsEngine = graphicsEngine;
 
 var gravity = -0.4;
 var player = new Player({
-    radius: 1,
+    size: 1,
     moveStrength: 0.5,
     airMoveStrength: 0.2,
     moveSpeed: 0.2,
@@ -129,47 +130,23 @@ player.setMeshAndAddToScene({}, graphicsEngine);
 entitySystem.register(player);
 player.addToWorld(world);
 
-
-var addParticle = function (position, damage) {
-    var particle = new TextParticle({
-        position: position.add(new Vector3(0, 3, 0)),
-        duration: 1250,
-        swaySpeed: 0.01,
-        size: Math.max(-0.25 + damage * 0.1, 0.5),
-        swayStrength: Math.min(-0.1 + damage * 0.01, 0.8),
-        text: "-" + damage.toString(),
-        color: "rgb(200, 36, 21)",
-        velocity: new Vector3(0, 0.006, 0),
-        damping: 0.005,
-        fadeOutSpeed: 0.2,
-        fadeInSpeed: 0.2,
-        growthSpeed: 0.2,
-        shrinkSpeed: 0.2,
-    });
-    particleSystem.addParticle(particle);
-}
-
-top.addParticle = addParticle;
-
-
 var map = await graphicsEngine.loadMap("map.glb");
-for(const obj of map.objects){
+for (const obj of map.objects) {
     world.addComposite(obj);
     obj.addToScene(graphicsEngine.scene);
-    if(obj.name.toLowerCase().includes("start")){
+    if (obj.name.toLowerCase().includes("start")) {
         player.setStartPoint(obj.global.body.position);
         player.respawn();
     }
-    if(obj.name.toLowerCase().includes("start") || obj.name.toLowerCase().includes("checkpoint")){
-        obj.isSensor = true;
-        obj.addEventListener("collision", function(contact){
-            if(contact.body1.maxParent == player.getMainShape().maxParent || contact.body2.maxParent == player.getMainShape().maxParent){
-                player.setSpawnPoint(obj.global.body.position);
+    if (obj.name.toLowerCase().includes("start") || obj.name.toLowerCase().includes("checkpoint")) {
+        obj.addEventListener("collision", function (contact) {
+            if (contact.body1.maxParent == player.getMainShape().maxParent || contact.body2.maxParent == player.getMainShape().maxParent) {
+                player.setSpawnPoint(player.getMainShape().global.body.position);
             }
         })
     }
 }
-for(var mesh of map.meshes){
+for (var mesh of map.meshes) {
     graphicsEngine.addToScene(mesh);
 }
 
@@ -184,34 +161,9 @@ var particleSystem = new ParticleSystem({
     timer: timer,
     graphicsEngine: graphicsEngine
 })
-top.particleSystem = particleSystem;
 function render() {
     stats.begin();
-    if (keyListener.isHeld("ArrowUp") || keyListener.isHeld("KeyW")) {
-
-        cameraControls.forward();
-    }
-    if (keyListener.isHeld("ArrowDown") || keyListener.isHeld("KeyS")) {
-        cameraControls.backward();
-    }
-    if (keyListener.isHeld("ArrowLeft") || keyListener.isHeld("KeyA")) {
-        cameraControls.left();
-    }
-    if (keyListener.isHeld("ArrowRight") || keyListener.isHeld("KeyD")) {
-        cameraControls.right();
-    }
-    if (keyListener.isHeld("Space")) {
-        cameraControls.up();
-    }
-    if (keyListener.isHeld("ShiftLeft") || keyListener.isHeld("ShiftRight")) {
-        cameraControls.down();
-    }
-    if (keyListener.isHeld("KeyO")) {
-        cameraControls.zoomOut();
-    }
-    if (keyListener.isHeld("KeyI")) {
-        cameraControls.zoomIn();
-    }
+    cameraControls.update();
 
     cameraControls.updateZoom();
 
@@ -223,7 +175,6 @@ function render() {
 
         stats2.begin();
         previousWorld = world.toJSON();
-        top.previousWorld = previousWorld;
 
         world.step();
 

@@ -1,6 +1,6 @@
-import Sphere from "./3D/Physics/Shapes/Sphere.mjs";
-import Composite from "./3D/Physics/Shapes/Composite.mjs";
-import Vector3 from "./3D/Physics/Math3D/Vector3.mjs";
+import Composite from "../Physics/Shapes/Composite.mjs";
+import Sphere from "../Physics/Shapes/Sphere.mjs";
+import Vector3 from "../Physics/Math3D/Vector3.mjs";
 import Entity from "./Entity.mjs";
 var SlimeSpawner = class extends Entity {
     constructor(options) {

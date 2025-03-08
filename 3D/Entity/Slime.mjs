@@ -1,7 +1,7 @@
-import Sphere from "./3D/Physics/Shapes/Sphere.mjs";
 import HealthEntity from "./HealthEntity.mjs";
-import Vector3 from "./3D/Physics/Math3D/Vector3.mjs";
-import Quaternion from "./3D/Physics/Math3D/Quaternion.mjs";
+import Quaternion from "../Physics/Math3D/Quaternion.mjs";
+import Sphere from "../Physics/Shapes/Sphere.mjs";
+import Vector3 from "../Physics/Math3D/Vector3.mjs";
 
 var Slime = class extends HealthEntity {
     constructor(options) {

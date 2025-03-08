@@ -16,15 +16,25 @@ var AutoTextureLoader = class {
             "exr": EXRLoader,
             "hdr": RGBELoader
         }
+        this.assetsDirectory = options?.assetsDirectory ?? new URL('.', import.meta.url).href + "Assets/";
     }
 
+    resolvePath(path) {
+        if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('file://') || path.startsWith('./')) {
+            return path;
+        }
+        return new URL(path, this.assetsDirectory).href;
+    }
+
+    
     async load(url) {
-        var extension = url.split('.').pop().toLowerCase();
+        var path = this.resolvePath(url);
+        var extension = path.split('.').pop().toLowerCase();
         if (this.specialLoaders[extension]) {
             var loader = new this.specialLoaders[extension];
-            return loader.loadAsync(url);
+            return loader.loadAsync(path);
         }
-        return new THREE.TextureLoader().loadAsync(url);
+        return new THREE.TextureLoader().loadAsync(path);
     }
 }
 

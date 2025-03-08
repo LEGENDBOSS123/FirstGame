@@ -117,7 +117,7 @@ const CollisionDetector = class {
             }
 
             if (contact.body1.isSensor || contact.body2.isSensor && contact.constructor.name == "COLLISIONCONTACT") {
-                contact.invalid = true;
+                contact.ignore = true;
             }
             var body1Map = maxParentMap[contact.body1.maxParent.id];
             var body2Map = maxParentMap[contact.body2.maxParent.id];
@@ -127,7 +127,7 @@ const CollisionDetector = class {
 
         for (var iter = 0; iter < this.iterations; iter++) {
             for (const contact of this.contacts) {
-                if (contact.invalid || !contact.solve()) {
+                if (contact.ignore || !contact.solve()) {
                     continue;
                 }
                 const a = contact.body1.maxParent;
@@ -145,7 +145,7 @@ const CollisionDetector = class {
         }
 
         for (const contact of this.contacts) {
-            if (contact.invalid) {
+            if (contact.ignore) {
                 continue;
             }
             contact.body1Map.penetrationSum += contact.penetration.magnitudeSquared();
@@ -155,7 +155,7 @@ const CollisionDetector = class {
         }
 
         for (const contact of this.contacts) {
-            if (contact.invalid) {
+            if (contact.ignore) {
                 contact.body1.dispatchEvent("collision", [contact]);
                 contact.body2.dispatchEvent("collision", [contact]);
                 continue;

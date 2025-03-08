@@ -1,4 +1,4 @@
-import Vector3 from "./3D/Physics/Math3D/Vector3.mjs";
+import Vector3 from "../../Physics/Math3D/Vector3.mjs";
 import * as THREE from "three";
 
 var Particle = class {
