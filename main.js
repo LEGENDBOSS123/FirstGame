@@ -46,6 +46,7 @@ window.graphicsEngine = graphicsEngine;
 
 
 
+var gameCamera = new CameraTHREEJS({ camera: graphicsEngine.camera, pullback: 5, maxPullback: 40 });
 var cameraControls = new SimpleCameraControls({
     camera: gameCamera,
     speed: 1,
