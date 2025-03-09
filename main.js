@@ -4,7 +4,6 @@ import World from "./3D/Physics/Core/World.mjs";
 import SimpleCameraControls from "./3D/SimpleCameraControls.mjs";
 import CameraTHREEJS from "./3D/CameraTHREEJS.mjs";
 import Player from "./3D/Entity/Player.mjs"
-import Keysheld from "./3D/Web/Keysheld.mjs";
 
 import Stats from "./3D/Web/Stats.mjs";
 import GraphicsEngine from "./3D/Graphics/GraphicsEngine.mjs";
@@ -86,8 +85,6 @@ cameraControls.addKeyBinds(
 );
 
 
-var keyListener = new Keysheld(window);
-
 
 
 document.addEventListener('contextmenu', (event) => {
@@ -161,7 +158,7 @@ timer.schedule(stepper);
 var particleSystem = new ParticleSystem({
     timer: timer,
     graphicsEngine: graphicsEngine
-})
+});
 function render() {
     stats.begin();
     cameraControls.update();
@@ -172,7 +169,7 @@ function render() {
     stepper.job = function () {
         player.updateKeys(cameraControls.movement, cameraControls.justToggled, cameraControls.getDelta(graphicsEngine.camera));
         cameraControls.reset();
-        player.update();
+        player.update(graphicsEngine);
 
         stats2.begin();
         previousWorld = world.toJSON();

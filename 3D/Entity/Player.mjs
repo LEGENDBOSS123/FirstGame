@@ -3,6 +3,7 @@ import Sphere from "../Physics/Shapes/Sphere.mjs";
 import Vector3 from "../Physics/Math3D/Vector3.mjs";
 import Entity from "./Entity.mjs";
 import Quaternion from "../Physics/Math3D/Quaternion.mjs";
+import Orb from "./Orb.mjs";
 
 var Player = class extends Entity {
     constructor(options) {
@@ -77,11 +78,11 @@ var Player = class extends Entity {
         this.touchingWall = false;
         this.wallNormal = new Vector3();
 
-        this.groundDetectDot = 0.75;
-        this.wallDetectDot = 0.25;
+        this.groundDetectDot = 0.8;
+        this.wallDetectDot = 0.2;
 
         this.jumpPostCollision = function (contact) {
-            if(contact.invalid){
+            if (contact.invalid) {
                 return;
             }
             if (contact.body1.maxParent == this.composite) {
@@ -112,11 +113,11 @@ var Player = class extends Entity {
             var vel = this.composite.global.body.getVelocity();
             var velXZ = new Vector3(vel.x, 0, vel.z);
             var velXZ2 = this.groundVelocity;
-            
+
             if (velXZ.magnitudeSquared() < 0.0001) {
                 return;
             }
-            if(this.touchingGround) {
+            if (this.touchingGround) {
                 velXZ = velXZ2;
             }
             this.composite.global.body.rotation = Quaternion.lookAt(velXZ.normalize(), new Vector3(0, 1, 0));
@@ -124,7 +125,7 @@ var Player = class extends Entity {
 
 
         this.preStepCallback = function () {
-            if(!this.sphere.sleeping){
+            if (!this.sphere.sleeping) {
                 this.touchingGround = false;
                 this.touchingWall = false;
             }
@@ -142,19 +143,19 @@ var Player = class extends Entity {
         this.keysVector = new Vector3();
     }
 
-    setStartPoint(v){
+    setStartPoint(v) {
         var startPoint = localStorage["playerStartPoint"];
-        if(!startPoint){
+        if (!startPoint) {
             localStorage["playerStartPoint"] = JSON.stringify(v.toJSON());
         }
-        else{
+        else {
             v = Vector3.from(JSON.parse(startPoint));
         }
 
         this.spawnPoint = v.copy();
     }
 
-    setSpawnPoint(v){
+    setSpawnPoint(v) {
         this.spawnPoint = v.copy();
         localStorage["playerStartPoint"] = JSON.stringify(v.toJSON());
     }
@@ -221,7 +222,7 @@ var Player = class extends Entity {
         this.keysVector = delta.copy();
     }
 
-    update() {
+    update(graphicsEngine) {
         var vel = this.composite.global.body.getVelocity();
         var velHorizontal = vel.copy();
         velHorizontal.y = 0;
@@ -230,9 +231,9 @@ var Player = class extends Entity {
         var vecHorizontal = vec.copy();
         vecHorizontal.y = 0;
         vecHorizontal.normalizeInPlace();
-        
+
         var desiredVelocity = vecHorizontal.scale(this.moveSpeed);
-        if(this.touchingGround){
+        if (this.touchingGround) {
             var groundVel = this.groundVelocity.copy();
             groundVel.y = 0;
             desiredVelocity.subtractInPlace(groundVel.subtract(velHorizontal));
@@ -242,18 +243,44 @@ var Player = class extends Entity {
 
         var moveStrength = this.moveStrength;
 
-        if(!this.touchingGround) {
+        if (!this.touchingGround) {
             moveStrength = this.airMoveStrength;
         }
 
-        if(mag > this.moveSpeed * moveStrength) {
-            velDelta.scaleInPlace(this.moveSpeed * moveStrength/mag);
+        if (mag > this.moveSpeed * moveStrength) {
+            velDelta.scaleInPlace(this.moveSpeed * moveStrength / mag);
         }
-        if(this.isKeyHeld("up") && this.canJump){
+        if (this.isKeyHeld("up") && this.canJump) {
             velDelta.y = this.jumpSpeed;
             this.canJump = false;
         }
         this.composite.global.body.previousPosition.subtractInPlace(velDelta);
+
+
+
+        if (this.wasKeyJustPressed("click")) {
+            graphicsEngine.raycaster.setFromCamera(graphicsEngine.mousePosition, graphicsEngine.camera);
+            var direction = Vector3.from(graphicsEngine.raycaster.ray.direction);
+            var maxDistance = 10;
+            var pos = this.composite.global.body.position.add(direction.scale(maxDistance));
+            var raycast = graphicsEngine.raycastFirst();
+            var radius = 1;
+            if(raycast){
+                pos = Vector3.from(raycast.point).add(Vector3.from(raycast.normal).scale(radius));
+            }
+            if(pos.distanceSquared(this.composite.global.body.position) > maxDistance * maxDistance){
+                direction = pos.subtract(this.composite.global.body.position).normalizeInPlace();
+                pos = this.composite.global.body.position.add(direction.scale(maxDistance));
+            }
+            var orb = new Orb({
+                position: pos,
+                radius: radius
+            })
+
+            orb.setMeshAndAddToScene({}, graphicsEngine);
+            this.entitySystem.register(orb);
+            orb.addToWorld(this.composite.world);
+        }
     }
 
     respawn() {

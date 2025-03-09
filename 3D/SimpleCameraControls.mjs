@@ -5,7 +5,7 @@ const SimpleCameraControls = class {
         this.speed = options?.speed ?? 1;
         this.keybinds = options?.keybinds ?? {};
         this.keysheld = {};
-        this.movement = { forward: false, backward: false, left: false, right: false, up: false, down: false, zoomIn: false, zoomOut: false };
+        this.movement = { forward: false, backward: false, left: false, right: false, up: false, down: false, zoomIn: false, zoomOut: false, click: false};
         this.previousMovement = structuredClone(this.movement);
         this.justToggled = structuredClone(this.movement);
         this.camera = options?.camera;
@@ -79,6 +79,7 @@ const SimpleCameraControls = class {
                 this.camera.rotateY(-e.movementY * this.rotateSensitivity.shiftLock);
             }
         }.bind(this));
+
         this.document.addEventListener("pointerlockchange", function (e) {
             if (this.document.pointerLockElement) {
                 this.shiftLocked = true;
@@ -164,6 +165,9 @@ const SimpleCameraControls = class {
             if(this.isHeld(key)){
                 this.processAction(this.keybinds[key]);
             }
+        }
+        if(this.isDragging){
+            this.processAction("click");
         }
     }
 
