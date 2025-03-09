@@ -9,7 +9,7 @@ const Orb = class extends Entity {
             radius: options?.radius ?? 1,
             local: {
                 body: {
-                    mass: 1
+                    mass: options?.mass ?? 1
                 }
             },
             global:{

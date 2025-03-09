@@ -121,7 +121,7 @@ const World = class {
                 this.removeComposite(comp);
             }
         }
-        for (const cons in this.constraints) {
+        for (const cons of this.constraints) {
             if (cons.toBeRemoved) {
                 this.removeConstraint(cons);
             }

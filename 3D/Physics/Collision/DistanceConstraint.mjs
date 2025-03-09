@@ -1,6 +1,7 @@
 import Vector3 from "../Math3D/Vector3.mjs";
 import Constraint from "./Constraint.mjs";
 import ClassRegistry from "../Core/ClassRegistry.mjs";
+import Quaternion from "../Math3D/Quaternion.mjs";
 const DistanceConstraint = class extends Constraint {
     static name = "DISTANCECONSTRAINT";
     constructor(options) {
@@ -23,7 +24,8 @@ const DistanceConstraint = class extends Constraint {
         this.anchor1 = options?.anchor1 ?? new Vector3();
         this.anchor2 = options?.anchor2 ?? new Vector3();
 
-        this.restLength = options?.restLength ?? 0;
+        this.lowerBound = options?.lowerBound ?? options?.restLength ?? 0;
+        this.upperBound = options?.upperBound ?? options?.restLength ?? Infinity;
         this.bias = options?.bias ?? 0.1;
 
         this.penetration = options?.penetration ?? new Vector3();
@@ -42,11 +44,14 @@ const DistanceConstraint = class extends Constraint {
     }
 
     lerpMesh(last, lerp, previousWorld) {
-        if (!last.body1 || !last.body2 || !this.body1 || !this.body2) {
+        var lastbody1 = previousWorld.all[last?.body1];
+        var lastbody2 = previousWorld.all[last?.body2];
+
+        if (!lastbody1 || !lastbody2 || !this.body1 || !this.body2) {
             return null;
         }
-        var lastPoints = [Vector3.fromJSON(last.body1.global.body.position).add(Quaternion.fromJSON(last.body1.global.body.rotation).multiplyVector3(last.anchor1)),
-        Vector3.fromJSON(last.body2.global.body.position).add(Quaternion.fromJSON(last.body2.global.body.rotation).multiplyVector3(last.anchor2))
+        var lastPoints = [Vector3.fromJSON(lastbody1.global.body.position).add(Quaternion.fromJSON(lastbody1.global.body.rotation).multiplyVector3(last.anchor1)),
+        Vector3.fromJSON(lastbody2.global.body.position).add(Quaternion.fromJSON(lastbody2.global.body.rotation).multiplyVector3(last.anchor2))
         ]
         var points = this.getPoints();
         var lerped = [
@@ -68,7 +73,18 @@ const DistanceConstraint = class extends Constraint {
             deltaLength = delta.magnitude();
         }
         var n = delta.scale(1 / deltaLength);
-        var error = deltaLength - this.restLength;
+        var error = 0;
+        if(deltaLength < this.upperBound && deltaLength > this.lowerBound){
+            this.impulse = new Vector3();
+            this.penetration = new Vector3();
+            return;
+        }
+        if (deltaLength > this.upperBound) {
+            error = deltaLength - this.upperBound;
+        }
+        else if (deltaLength < this.lowerBound) {
+            error = deltaLength - this.lowerBound;
+        }
         this.penetration = n.scale(error);
         var velocity1 = this.body1.getVelocityAtPosition(this.point1);
         var velocity2 = this.body2.getVelocityAtPosition(this.point2);
@@ -109,7 +125,7 @@ const DistanceConstraint = class extends Constraint {
         this.solved = true;
         return true;
     }
-    
+
     setMesh(options, graphicsEngine) {
         var geometry = new graphicsEngine.THREE.BufferGeometry().setFromPoints(this.getPoints());
         var material = new graphicsEngine.THREE.LineBasicMaterial({ color: options?.color ?? 0xff0000 });
@@ -146,7 +162,8 @@ const DistanceConstraint = class extends Constraint {
         c.anchor2 = this.anchor2;
 
         c.solved = this.solved;
-        c.restLength = this.restLength;
+        c.lowerBound = this.lowerBound;
+        c.upperBound = this.upperBound;
 
         c.combinedMaterial = this.combinedMaterial;
         return c;
@@ -167,7 +184,8 @@ const DistanceConstraint = class extends Constraint {
         json.anchor1 = this.anchor1.toJSON();
         json.anchor2 = this.anchor2.toJSON();
 
-        json.restLength = this.restLength;
+        json.lowerBound = this.lowerBound;
+        json.upperBound = this.upperBound;
         json.bias = this.bias;
 
         json.penetration = this.penetration.toJSON();
@@ -186,7 +204,8 @@ const DistanceConstraint = class extends Constraint {
         distanceConstraint.point2 = Vector3.fromJSON(json.point2);
         distanceConstraint.anchor1 = Vector3.fromJSON(json.anchor1);
         distanceConstraint.anchor2 = Vector3.fromJSON(json.anchor2);
-        distanceConstraint.restLength = json.restLength;
+        distanceConstraint.lowerBound = json.upperBound;
+        distanceConstraint.upperBound = json.upperBound;
         distanceConstraint.bias = json.bias;
         distanceConstraint.penetration = Vector3.fromJSON(json.penetration);
         distanceConstraint.denominator = json.denominator;
@@ -197,7 +216,7 @@ const DistanceConstraint = class extends Constraint {
     updateReferences(world = this.world, graphicsEngine = this.world.graphicsEngine) {
         this.body1 = world.getByID(this.body1);
         this.body2 = world.getByID(this.body2);
-
+        console.log("E")
         if (graphicsEngine) {
             this.graphicsEngine = graphicsEngine;
         }

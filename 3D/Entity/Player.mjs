@@ -4,6 +4,7 @@ import Vector3 from "../Physics/Math3D/Vector3.mjs";
 import Entity from "./Entity.mjs";
 import Quaternion from "../Physics/Math3D/Quaternion.mjs";
 import Orb from "./Orb.mjs";
+import DistanceConstraint from "../Physics/Collision/DistanceConstraint.mjs";
 
 var Player = class extends Entity {
     constructor(options) {
@@ -261,7 +262,7 @@ var Player = class extends Entity {
         if (this.wasKeyJustPressed("click")) {
             graphicsEngine.raycaster.setFromCamera(graphicsEngine.mousePosition, graphicsEngine.camera);
             var direction = Vector3.from(graphicsEngine.raycaster.ray.direction);
-            var maxDistance = 10;
+            var maxDistance = 40;
             var pos = this.composite.global.body.position.add(direction.scale(maxDistance));
             var raycast = graphicsEngine.raycastFirst();
             var radius = 1;
@@ -272,14 +273,35 @@ var Player = class extends Entity {
                 direction = pos.subtract(this.composite.global.body.position).normalizeInPlace();
                 pos = this.composite.global.body.position.add(direction.scale(maxDistance));
             }
+            if(this.lastOrb){
+                var constraint = null;
+                for(var i of world.constraints){
+                    if(i.body1 == this.lastOrb.sphere || i.body2 == this.lastOrb.sphere){
+                        constraint = i;
+                        break;
+                    }
+                }
+                constraint.toBeRemoved = true;
+            }
             var orb = new Orb({
                 position: pos,
-                radius: radius
+                radius: radius,
+                mass: 0.5
             })
-
+            this.lastOrb = orb;
+            orb.sphere.setLocalFlag(Composite.FLAGS.STATIC, true);
+            orb.sphere.global.body.acceleration.reset();
             orb.setMeshAndAddToScene({}, graphicsEngine);
             this.entitySystem.register(orb);
             orb.addToWorld(this.composite.world);
+
+            var dist_constraint = new DistanceConstraint({
+                body1: this.composite,
+                body2: orb.sphere,
+                upperBound: this.composite.global.body.position.distance(pos)
+            })
+            dist_constraint.setMeshAndAddToScene({}, graphicsEngine);
+            this.composite.world.addConstraint(dist_constraint);
         }
     }
 
