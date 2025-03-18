@@ -256,53 +256,6 @@ var Player = class extends Entity {
             this.canJump = false;
         }
         this.composite.global.body.previousPosition.subtractInPlace(velDelta);
-
-
-
-        if (this.wasKeyJustPressed("click")) {
-            graphicsEngine.raycaster.setFromCamera(graphicsEngine.mousePosition, graphicsEngine.camera);
-            var direction = Vector3.from(graphicsEngine.raycaster.ray.direction);
-            var maxDistance = 40;
-            var pos = this.composite.global.body.position.add(direction.scale(maxDistance));
-            var raycast = graphicsEngine.raycastFirst();
-            var radius = 1;
-            if(raycast){
-                pos = Vector3.from(raycast.point).add(Vector3.from(raycast.normal).scale(radius));
-            }
-            if(pos.distanceSquared(this.composite.global.body.position) > maxDistance * maxDistance){
-                direction = pos.subtract(this.composite.global.body.position).normalizeInPlace();
-                pos = this.composite.global.body.position.add(direction.scale(maxDistance));
-            }
-            if(this.lastOrb){
-                var constraint = null;
-                for(var i of world.constraints){
-                    if(i.body1 == this.lastOrb.sphere || i.body2 == this.lastOrb.sphere){
-                        constraint = i;
-                        break;
-                    }
-                }
-                constraint.toBeRemoved = true;
-            }
-            var orb = new Orb({
-                position: pos,
-                radius: radius,
-                mass: 0.5
-            })
-            this.lastOrb = orb;
-            orb.sphere.setLocalFlag(Composite.FLAGS.STATIC, true);
-            orb.sphere.global.body.acceleration.reset();
-            orb.setMeshAndAddToScene({}, graphicsEngine);
-            this.entitySystem.register(orb);
-            orb.addToWorld(this.composite.world);
-
-            var dist_constraint = new DistanceConstraint({
-                body1: this.composite,
-                body2: orb.sphere,
-                upperBound: this.composite.global.body.position.distance(pos)
-            })
-            dist_constraint.setMeshAndAddToScene({}, graphicsEngine);
-            this.composite.world.addConstraint(dist_constraint);
-        }
     }
 
     respawn() {

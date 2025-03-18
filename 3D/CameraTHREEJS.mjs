@@ -11,6 +11,7 @@ var CameraTHREEJS = class {
         this.currentPullback = this.pullback;
         this.camera = options?.camera;
         this.origin = Vector3.from(options?.origin);
+        this.collisionPadding = 0.25;
     }
 
     rotateX(angle) {
@@ -59,13 +60,34 @@ var CameraTHREEJS = class {
         return new Vector3(Math.cos(this.looking.y) * Math.cos(this.looking.xz), Math.sin(this.looking.y), Math.cos(this.looking.y) * Math.sin(this.looking.xz));
     }
 
-    update(position) {
+    update(position, graphicsEngine) {
 
-        var normalizedLookAt = this.getLookAt().normalize();
+        var normalizedLookAt = this.getLookAt().normalizeInPlace();
         this.camera.lookAt(this.camera.position.clone().add(normalizedLookAt));
         this.origin.set(this.origin.lerp(position, 1));
         this.camera.position.set(...this.origin);
-        this.camera.position.add(normalizedLookAt.scale(-this.currentPullback));
+        var addon = new Vector3();
+        var raycast = graphicsEngine.raycastFirst({
+            direction: normalizedLookAt.scale(-1),
+            origin: this.camera.position,
+            far: this.currentPullback + 2,
+            onlyPhysicsObjects: true
+        });
+        if (raycast) {
+            if(raycast.distance <= this.currentPullback){
+                this.currentPullback = raycast.distance;
+                var dot = normalizedLookAt.dot(raycast.normal);
+                if (Math.abs(dot) < 0) {
+                    addon = Vector3.from(raycast.normal).scale(this.collisionPadding);
+                }
+                else{
+                    addon = normalizedLookAt.scale(this.collisionPadding/dot);
+                }
+            }
+            
+        }
+        
+        this.camera.position.add(normalizedLookAt.scale(-this.currentPullback).add(addon));
         this.currentPullback = this.pullback;
     }
 }

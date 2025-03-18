@@ -180,7 +180,7 @@ function render() {
     }
 
     graphicsEngine.update(previousWorld || world, world, stepper.getLerpAmount());
-    gameCamera.update(Vector3.from(player.getMainShape()?.mesh?.mesh?.position));
+    gameCamera.update(Vector3.from(player.getMainShape()?.mesh?.mesh?.position), graphicsEngine);
     particleSystem.update();
     graphicsEngine.render();
     timer.step();

@@ -26,7 +26,6 @@ const DistanceConstraint = class extends Constraint {
 
         this.lowerBound = options?.lowerBound ?? options?.restLength ?? 0;
         this.upperBound = options?.upperBound ?? options?.restLength ?? Infinity;
-        this.bias = options?.bias ?? 0.1;
 
         this.penetration = options?.penetration ?? new Vector3();
         this.denominator = options?.denominator ?? 0;
@@ -120,7 +119,7 @@ const DistanceConstraint = class extends Constraint {
                 return false;
             }
         }
-        var lambda = (relVel + error * this.bias) / this.denominator;
+        var lambda = relVel / this.denominator;
         this.impulse = n.scale(lambda);
         this.solved = true;
         return true;

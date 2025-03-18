@@ -79,14 +79,34 @@ var GraphicsEngine = class {
 
     }
 
-    raycastFirst() {
-        this.raycaster.setFromCamera(this.mousePosition, this.camera);
+    parseRaycastResult(raycast){
+        if(!raycast){
+            return raycast;
+        }
+        raycast.normal = raycast.normal.clone().applyMatrix3(new this.THREE.Matrix3().getNormalMatrix(raycast.object.matrixWorld)).normalize();
+        return raycast;
+    }
+
+    raycastFirst(options) {
+        if(options?.direction && options?.origin){
+            this.raycaster.ray.origin.set(...options.origin);
+            this.raycaster.ray.direction.set(...options.direction);
+        }
+        else{
+            this.raycaster.setFromCamera(this.mousePosition, this.camera);
+        }
+        this.raycaster.far = options?.far;
         const intesections = this.raycaster.intersectObjects(this.scene.children, true);
+        this.raycaster.far = Infinity;
+        var onlyPhysicsObjects = options?.onlyPhysicsObjects ?? false;
         for (var i of intesections) {
             if (i.face == null && !i.normal) {
                 continue;
             }
-            return i;
+            if(onlyPhysicsObjects && !i.object?.isPhysicsObject){
+                continue;
+            }
+            return this.parseRaycastResult(i);
         }
         return null;
     }
@@ -242,6 +262,7 @@ var GraphicsEngine = class {
                             name: child.name
                         }).fromMesh(child, this);
                         obj.mesh = this.meshLinker.createMeshData(child);
+                        obj.mesh.mesh.isPhysicsObject = true;
                         obj.setLocalFlag(Composite.FLAGS.STATIC, true);
                         map.objects.push(obj);
                     }
