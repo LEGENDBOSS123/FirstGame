@@ -77,7 +77,7 @@ var CameraTHREEJS = class {
             if(raycast.distance <= this.currentPullback){
                 this.currentPullback = raycast.distance;
                 var dot = normalizedLookAt.dot(raycast.normal);
-                if (Math.abs(dot) < 0) {
+                if (Math.abs(dot) < 0.1) {
                     addon = Vector3.from(raycast.normal).scale(this.collisionPadding);
                 }
                 else{
