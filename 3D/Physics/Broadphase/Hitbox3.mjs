@@ -93,6 +93,13 @@ const Hitbox3 = class {
         return this.min.distanceSquared(this.max) * 0.25;
     }
 
+    translate(v){
+        var hitbox = new this.constructor();
+        hitbox.min = this.min.add(v);
+        hitbox.max = this.max.add(v);
+        return hitbox;
+    }
+
     toJSON() {
         return {
             min: this.min.toJSON(),

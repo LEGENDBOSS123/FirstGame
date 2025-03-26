@@ -21,6 +21,10 @@ const Vector3 = class {
         return this.subtract(this.projectOnto(v));
     }
 
+    abs(){
+        return new this.constructor(Math.abs(this.x), Math.abs(this.y), Math.abs(this.z));
+    }
+
     cross(v) {
         return new this.constructor(this.y * v.z - this.z * v.y, this.z * v.x - this.x * v.z, this.x * v.y - this.y * v.x);
     }

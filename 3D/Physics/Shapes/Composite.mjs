@@ -32,6 +32,7 @@ const Composite = class extends WorldObject {
         this.global = {};
         this.global.body = new PhysicsBody3(options?.global?.body);
         this.global.hitbox = Hitbox3.from(options?.global?.hitbox);
+        this.global.expandedHitbox = Hitbox3.from(options?.global?.expandedHitbox);
         this.global.flags = options?.global?.flags ?? 0;
 
         this.local = {};
@@ -361,8 +362,10 @@ const Composite = class extends WorldObject {
 
     updateGlobalHitboxAll() {
         this.calculateGlobalHitbox();
+        const projectedHitbox = this.global.hitbox.translate(this.global.body.getVelocity().scale(-1));
+        this.global.expandedHitbox = Hitbox3.fromHitboxes([projectedHitbox, this.global.hitbox]);
         if (this.world?.spatialHash && this.getLocalFlag(this.constructor.FLAGS.OCCUPIES_SPACE)) {
-            this.world.spatialHash.addHitbox(this.global.hitbox, this.id);
+            this.world.spatialHash.addHitbox(this.global.expandedHitbox, this.id);
         }
         for (const child of this.children) {
             child.updateGlobalHitboxAll();
@@ -511,6 +514,7 @@ const Composite = class extends WorldObject {
         composite.global = {};
         composite.global.body = this.global.body.toJSON();
         composite.global.hitbox = this.global.hitbox.toJSON();
+        composite.global.expandedHitbox = this.global.expandedHitbox.toJSON();
         composite.global.flags = this.global.flags;
         composite.local = {};
         composite.local.body = this.local.body.toJSON();
@@ -536,6 +540,7 @@ const Composite = class extends WorldObject {
         composite.material = Material.fromJSON(json.material, world);
         composite.global.body = PhysicsBody3.fromJSON(json.global.body, world);
         composite.global.hitbox = Hitbox3.fromJSON(json.global.hitbox);
+        composite.global.expandedHitbox = Hitbox3.fromJSON(json.global.expandedHitbox);
         composite.global.flags = json.global.flags;
         composite.local.body = PhysicsBody3.fromJSON(json.local.body, world);
         composite.local.hitbox = Hitbox3.fromJSON(json.local.hitbox, world);
