@@ -13,7 +13,7 @@ const CollisionDetector = class {
         this.world = options?.world ?? null;
         this.contacts = options?.contacts ?? [];
         this.handlers = {};
-        this.binarySearchDepth = options?.binarySearchDepth ?? 16;
+        this.binarySearchDepth = options?.binarySearchDepth ?? 72;
         this.iterations = options?.iterations ?? 4;
         this.concavePolyhedronBinarySearchDepth = options?.concavePolyhedronBinarySearchDepth ?? 1;
         this.initHandlers();
@@ -570,55 +570,42 @@ const CollisionDetector = class {
     //         return [Infinity, Infinity];
     //     }
     // }
+    computeInterval(min1, max1, min2, max2, relVel) {
+        if (relVel === 0) {
+            if (max1 < min2 || max2 < min1) {
+                return null; // They never overlap on this axis.
+            }
+            return { tEntry: -Infinity, tExit: Infinity };
+        }
 
+        const t1 = (min2 - max1) / relVel;
+        const t2 = (max2 - min1) / relVel;
+
+        return { tEntry: Math.min(t1, t2), tExit: Math.max(t1, t2) };
+    }
     timeOfImpactAABBAABB(aabb1, vel1, aabb2, vel2) {
-        // Extract extents from each AABB (min and max are vectors)
         const a1minX = aabb1.min.x, a1maxX = aabb1.max.x;
         const a1minY = aabb1.min.y, a1maxY = aabb1.max.y;
         const a2minX = aabb2.min.x, a2maxX = aabb2.max.x;
         const a2minY = aabb2.min.y, a2maxY = aabb2.max.y;
 
-        // Calculate relative velocity (box1 relative to box2)
         const relVelX = vel1.x - vel2.x;
         const relVelY = vel1.y - vel2.y;
 
-        // Helper function to compute the time interval of overlap on one axis.
-        function computeInterval(min1, max1, min2, max2, relVel) {
-            // If there's no relative movement, check if they are overlapping.
-            if (relVel === 0) {
-                if (max1 < min2 || max2 < min1) {
-                    return null; // They never overlap on this axis.
-                }
-                // They are overlapping for all time on this axis.
-                return { tEntry: -Infinity, tExit: Infinity };
-            }
+        const intervalX = this.computeInterval(a1minX, a1maxX, a2minX, a2maxX, relVelX);
+        const intervalY = this.computeInterval(a1minY, a1maxY, a2minY, a2maxY, relVelY);
 
-            // Calculate times when the boundaries cross.
-            const t1 = (min2 - max1) / relVel;
-            const t2 = (max2 - min1) / relVel;
-
-            // tEntry is when overlap begins, and tExit is when it ends.
-            return { tEntry: Math.min(t1, t2), tExit: Math.max(t1, t2) };
-        }
-
-        const intervalX = computeInterval(a1minX, a1maxX, a2minX, a2maxX, relVelX);
-        const intervalY = computeInterval(a1minY, a1maxY, a2minY, a2maxY, relVelY);
-
-        // If there is no possible overlap in one of the axes, the boxes never collide.
         if (intervalX === null || intervalY === null) {
             return null;
         }
 
-        // The overall collision interval is the intersection of the intervals on both axes.
         const tEntry = Math.max(intervalX.tEntry, intervalY.tEntry);
         const tExit = Math.min(intervalX.tExit, intervalY.tExit);
 
-        // If the entry is after the exit or the collision happens entirely in the past, return null.
         if (tEntry > tExit || tExit < 0) {
             return null;
         }
 
-        // Clamp the collision start time to 0 if the boxes are already overlapping.
         const collisionStart = tEntry < 0 ? 0 : tEntry;
         return [collisionStart, tExit];
     }
@@ -636,15 +623,15 @@ const CollisionDetector = class {
         var timeOfImpact = this.timeOfImpactAABBAABB(sphere.global.hitbox.translate(sphere.global.body.getVelocity().scale(-1)), sphere.global.body.getVelocity(), box.global.hitbox.translate(box.global.body.getVelocity().scale(-1)), box.global.body.getVelocity());
 
         if (timeOfImpact != null) {
-            minT = timeOfImpact[0];
+            minT = Math.max(0, timeOfImpact[0]);
             // maxT = Math.min(1, timeOfImpact[1]);
-            // if(maxT < 1){
-            //     console.log(minT, maxT);
-            // }
         }
 
+        // console.log(minT, maxT, sphere.global.hitbox.translate(sphere.global.body.getVelocity().scale(-1 + minT + 0.01)).intersects(box.global.hitbox.translate(box.global.body.getVelocity().scale(-1 + minT + 0.01))),
+        //     sphere.global.hitbox.translate(sphere.global.body.getVelocity().scale(-1 + maxT - 0.01)).intersects(box.global.hitbox.translate(box.global.body.getVelocity().scale(-1 + maxT - 0.01))),
+        // sphere.global.hitbox.translate(sphere.global.body.getVelocity().scale(-1 + maxT + 0.01)).intersects(box.global.hitbox.translate(box.global.body.getVelocity().scale(-1 + maxT + 0.01)))
 
-        // console.log(minT, maxT, sphere.global.hitbox.translate(sphere.global.body.getVelocity().scale(-1 + minT + 0.01)).intersects(box.global.hitbox.translate(box.global.body.getVelocity().scale(-1 + minT + 0.01))));
+        // );
 
         var binarySearch = function (t) {
             spherePos = sphere.global.body.previousPosition.lerp(sphere.global.body.position, t);
@@ -656,7 +643,6 @@ const CollisionDetector = class {
 
             const clampedPoint = this.clampPointToAABB(relativePos, box);
             inside = clampedPoint.equals(relativePos);
-
             if (inside) {
                 closestPoint = this.closestPointToAABB(relativePos, box, clampedPoint);
             }
@@ -667,9 +653,9 @@ const CollisionDetector = class {
             return (inside ? -1 : 1) * (minDistanceSquared - (inside ? -1 : 1) * sphere.radius * sphere.radius);
         }.bind(this);
 
-        var t = 1;
+        var t = maxT;
         for (var i = 0; i < this.binarySearchDepth; i++) {
-            t = minT + (maxT - minT) * 0.15;
+            t = minT + (maxT - minT) * 0.05;
             var result = binarySearch(t);
 
             if (result > 0) {
@@ -679,10 +665,10 @@ const CollisionDetector = class {
             }
         }
         t = maxT;
-
         if (binarySearch(t) > 0) {
             return false;
         }
+
 
         const closestPoint2 = box.global.body.rotation.multiplyVector3(closestPoint).addInPlace(boxPos);
         const contact = new CollisionContact();
