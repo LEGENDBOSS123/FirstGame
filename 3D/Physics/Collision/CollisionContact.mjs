@@ -1,5 +1,6 @@
 import Vector3 from "../Math3D/Vector3.mjs";
 import Constraint from "./Constraint.mjs";
+import ClassRegistry from "../Core/ClassRegistry.mjs";
 
 const CollisionContact = class extends Constraint {
     static name = "COLLISIONCONTACT";
@@ -161,5 +162,6 @@ const CollisionContact = class extends Constraint {
         return c;
     }
 };
+ClassRegistry.register(CollisionContact);
 
 export default CollisionContact;

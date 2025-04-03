@@ -94,10 +94,7 @@ const Hitbox3 = class {
     }
 
     translate(v){
-        var hitbox = new this.constructor();
-        hitbox.min = this.min.add(v);
-        hitbox.max = this.max.add(v);
-        return hitbox;
+        return new this.constructor(this.min.add(v), this.max.add(v));
     }
 
     toJSON() {
