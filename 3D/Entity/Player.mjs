@@ -3,17 +3,17 @@ import Sphere from "../Physics/Shapes/Sphere.mjs";
 import Vector3 from "../Physics/Math3D/Vector3.mjs";
 import Entity from "./Entity.mjs";
 import Quaternion from "../Physics/Math3D/Quaternion.mjs";
-import Orb from "./Orb.mjs";
-import DistanceConstraint from "../Physics/Collision/DistanceConstraint.mjs";
 
 var Player = class extends Entity {
     constructor(options) {
         super(options);
+        this.isPlayer = true;
         this.gravity = options?.gravity ?? new Vector3(0, 0, 0);
         this.moveSpeed = options?.moveSpeed ?? 1;
         this.moveStrength = options?.moveStrength ?? 1;
         this.airMoveStrength = options?.airMoveStrength ?? 0.1;
         this.jumpSpeed = options?.jumpSpeed ?? 1;
+        this.money = 0;
         this.composite = new Composite({
             global: {
                 body: {
@@ -58,12 +58,9 @@ var Player = class extends Entity {
         this.composite.add(this.sphere);
         this.composite.add(this.sphere2);
         this.composite.add(this.sphere3);
-        this.sphere.collisionMask = 0;
-        this.sphere.collisionMask = this.sphere.setBitMask(this.sphere.collisionMask, "P", true);
-        this.sphere2.collisionMask = 0;
-        this.sphere2.collisionMask = this.sphere2.setBitMask(this.sphere2.collisionMask, "P", true);
-        this.sphere3.collisionMask = 0;
-        this.sphere3.collisionMask = this.sphere2.setBitMask(this.sphere2.collisionMask, "P", true);
+        this.sphere.collisionMask = this.sphere.setBitMask(0, "P", true);
+        this.sphere2.collisionMask = this.sphere2.setBitMask(0, "P", true);
+        this.sphere3.collisionMask = this.sphere2.setBitMask(0, "P", true);
 
 
         this.composite.setLocalFlag(Composite.FLAGS.CENTER_OF_MASS, true);
@@ -83,7 +80,7 @@ var Player = class extends Entity {
         this.wallDetectDot = 0.2;
 
         this.jumpPostCollision = function (contact) {
-            if (contact.invalid) {
+            if (contact.ignore) {
                 return;
             }
             if (contact.body1.maxParent == this.composite) {
@@ -98,7 +95,7 @@ var Player = class extends Entity {
                     this.groundVelocity = contact.velocity;
                 }
             }
-            else {
+            else{
                 if (contact.normal.dot(new Vector3(0, -1, 0)) > this.groundDetectDot) {
                     this.canJump = true;
                     this.touchingGround = true;
@@ -176,9 +173,11 @@ var Player = class extends Entity {
         this.updateShapeID();
     }
 
-    setMeshAndAddToScene(options, graphicsEngine) {
-
-        graphicsEngine.load("roblox_default_character.glb").then(function (gltf) {
+    setMeshAndAddToScene(options, gameEngine) {
+        if(this.composite.mesh) {
+            return;
+        }
+        gameEngine.graphicsEngine.load("roblox_default_character.glb").then(function (gltf) {
             gltf.scene.scale.set(...(new Vector3(0.4, 0.4, 0.4).scale(this.sphere.radius * 1.95)));
             gltf.scene.children[0].quaternion.copy(Quaternion.from(gltf.scene.children[0].quaternion).rotateByAngularVelocity(new Vector3(0, 2, 0)));
             for (var e of gltf.scene.children) {
@@ -192,13 +191,13 @@ var Player = class extends Entity {
                     child.receiveShadow = true;
                 }
             })
-            var meshData = graphicsEngine.meshLinker.createMeshData(gltf.scene);
+            var meshData = gameEngine.graphicsEngine.meshLinker.createMeshData(gltf.scene);
             this.composite.mesh = meshData;
-            this.composite.addToScene(graphicsEngine.scene);
+            this.composite.addToScene(gameEngine);
         }.bind(this));
-        // this.sphere.setMeshAndAddToScene({}, graphicsEngine);
-        // this.sphere2.setMeshAndAddToScene({}, graphicsEngine);
-        // this.sphere3.setMeshAndAddToScene({}, graphicsEngine);
+        // this.sphere.setMeshAndAddToScene({}, gameEngine);
+        // this.sphere2.setMeshAndAddToScene({}, gameEngine);
+        // this.sphere3.setMeshAndAddToScene({}, gameEngine);
     }
 
     wasKeyJustPressed(key) {
@@ -217,13 +216,13 @@ var Player = class extends Entity {
         return this.keysVector.copy();
     }
 
-    updateKeys(held, justToggled, delta) {
-        this.keysHeld = structuredClone(held);
-        this.justToggled = structuredClone(justToggled);
-        this.keysVector = delta.copy();
+    updateKeys(gameEngine) {
+        this.keysHeld = structuredClone(gameEngine.cameraControls.movement);
+        this.justToggled = structuredClone(gameEngine.cameraControls.justToggled);
+        this.keysVector = gameEngine.cameraControls.getDelta(gameEngine.graphicsEngine.camera).copy();
     }
 
-    update(graphicsEngine) {
+    updateStep(gameEngine) {
         var vel = this.composite.global.body.getVelocity();
         var velHorizontal = vel.copy();
         velHorizontal.y = 0;
@@ -299,9 +298,9 @@ var Player = class extends Entity {
         return player;
     }
 
-    updateReferences(world) {
-        this.composite = world.getByID(this.composite);
-        this.sphere = world.getByID(this.sphere);
+    updateReferences(gameEngine) {
+        this.composite = gameEngine.world.getByID(this.composite);
+        this.sphere = gameEngine.world.getByID(this.sphere);
         this.sphere.addEventListener("collision", this.jumpPostCollision);
         this.composite.addEventListener("postStep", this.postStepCallback);
         this.sphere.addEventListener("preStep", this.preStepCallback);

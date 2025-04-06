@@ -100,24 +100,24 @@ const Box = class extends Composite {
         return vertices;
     }
 
-    setMesh(options, graphicsEngine) {
-        var geometry = options?.geometry ?? new graphicsEngine.THREE.BoxGeometry(this.width, this.height, this.depth);
-        this.mesh = graphicsEngine.meshLinker.createMeshData(new graphicsEngine.THREE.Mesh(geometry, options?.material ?? new graphicsEngine.THREE.MeshPhongMaterial({ color: 0x00ff00, wireframe: false })));
+    setMesh(options, gameEngine) {
+        var geometry = options?.geometry ?? new gameEngine.graphicsEngine.THREE.BoxGeometry(this.width, this.height, this.depth);
+        this.mesh = gameEngine.graphicsEngine.meshLinker.createMeshData(new gameEngine.graphicsEngine.THREE.Mesh(geometry, options?.material ?? new gameEngine.graphicsEngine.THREE.MeshPhongMaterial({ color: 0x00ff00, wireframe: false })));
     }
 
-    setMeshAndAddToScene(options, graphicsEngine) {
-        this.setMesh(options, graphicsEngine);
-        this.addToScene(graphicsEngine.scene);
+    setMeshAndAddToScene(options, gameEngine) {
+        this.setMesh(options, gameEngine);
+        this.addToScene(gameEngine);
     }
 
-    fromMesh(mesh, graphicsEngine) {
+    fromMesh(mesh, gameEngine) {
         var cubeSize = [Math.abs(mesh.geometry.attributes.position.array[0]), Math.abs(mesh.geometry.attributes.position.array[1]), Math.abs(mesh.geometry.attributes.position.array[2])];
         this.width = Math.abs(mesh.scale.x) * 2 * cubeSize[0];
         this.height = Math.abs(mesh.scale.y) * 2 * cubeSize[1];
         this.depth = Math.abs(mesh.scale.z) * 2 * cubeSize[2];
         
-        var pos = Vector3.from(mesh.getWorldPosition(new graphicsEngine.THREE.Vector3()));
-        var quat = Quaternion.from(mesh.getWorldQuaternion(new graphicsEngine.THREE.Quaternion));
+        var pos = Vector3.from(mesh.getWorldPosition(new gameEngine.graphicsEngine.THREE.Vector3()));
+        var quat = Quaternion.from(mesh.getWorldQuaternion(new gameEngine.graphicsEngine.THREE.Quaternion()));
         this.global.body.rotation = quat;
         this.global.body.setPosition(pos);
         this.global.body.actualPreviousPosition = this.global.body.position.copy();

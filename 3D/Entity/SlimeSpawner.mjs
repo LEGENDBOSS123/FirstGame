@@ -16,8 +16,8 @@ var SlimeSpawner = class extends Entity {
         this.updateShapeID(this.sphere);
     }
 
-    addToScene(scene) {
-        this.sphere.addToScene(scene);
+    addToScene(gameEngine) {
+        this.sphere.addToScene(gameEngine);
     }
 
     addToWorld(world) {
@@ -25,16 +25,16 @@ var SlimeSpawner = class extends Entity {
         this.updateShapeID(this.sphere);
     }
 
-    setMeshAndAddToScene(options, graphicsEngine) {
-        graphicsEngine.load("slimeSpawner.glb", function (gltf) {
+    setMeshAndAddToScene(options, gameEngine) {
+        gameEngine.graphicsEngine.load("slimeSpawner.glb", function (gltf) {
             gltf.scene.traverse(function (child) {
                 if (child.isMesh) {
                     child.castShadow = true;
                     child.receiveShadow = true;
                 }
             })
-            this.sphere.mesh = graphicsEngine.meshLinker.createMeshData(gltf.scene);
-            this.addToScene(graphicsEngine.scene);
+            this.sphere.mesh = gameEngine.graphicsEngine.meshLinker.createMeshData(gltf.scene);
+            this.addToScene(gameEngine);
         }.bind(this));
     }
 
@@ -50,11 +50,11 @@ var SlimeSpawner = class extends Entity {
         return slimeSpawner;
     }
 
-    updateReferences(world) {
-        this.sphere = world.getByID(this.sphere);
+    updateReferences(gameEngine) {
+        this.sphere = gameEngine.world.getByID(this.sphere);
     }
 
-    spawnSlime(slimeClass, world, graphicsEngine) {
+    spawnSlime(slimeClass, gameEngine) {
         var slime = new slimeClass({
             sphere: {
                 global: {
@@ -65,9 +65,9 @@ var SlimeSpawner = class extends Entity {
                 }
             }
         });
-        slime.addToWorld(world);
+        slime.addToWorld(gameEngine.world);
         this.entitySystem.register(slime);
-        slime.setMeshAndAddToScene({}, graphicsEngine);
+        slime.setMeshAndAddToScene({}, gameEngine);
         return slime;
     }
     getMainShape() {

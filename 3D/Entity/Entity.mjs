@@ -5,6 +5,7 @@ var Entity = class {
         this.entitySystem = options?.entitySystem ?? null;
         this.oldShape = options?.oldShape ?? null;
         this.isEntity = true;
+        this.name = options?.name ?? "";
     }
 
     updateShapeID(shape = this.oldShape) {
@@ -28,7 +29,19 @@ var Entity = class {
     }
 
     getMainShape() {
+        return this.oldShape;
+    }
 
+    fromMesh(mesh, graphicsEngine) {
+
+    }
+
+    updateStep(gameEngine) {
+
+    }
+
+    update(gameEngine) {
+        
     }
 }
 

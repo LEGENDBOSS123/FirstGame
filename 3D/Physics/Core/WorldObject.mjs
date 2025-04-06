@@ -8,12 +8,11 @@ const WorldObject = class {
         this.id = options?.id ?? -1;
         this.type = ClassRegistry.getTypeFromName(this.constructor.name);
         this.name = options?.name ?? "";
-        this.world = options?.world ?? null;
 
         this.events = {};
         this.toBeRemoved = options?.toBeRemoved ?? false;
 
-        this.graphicsEngine = options?.graphicsEngine ?? null;
+        this.gameEngine = options?.gameEngine ?? null;
         this._mesh = options?.mesh ?? null;
     }
 
@@ -44,28 +43,23 @@ const WorldObject = class {
         }
     }
 
-    setWorld(world) {
-        this.world = world;
-        return this;
-    }
-
-    setMesh(options, graphicsEngine) {
+    setMesh(options, gameEngine) {
         return null;
     }
 
-    setMeshAndAddToScene(options, graphicsEngine) {
+    setMeshAndAddToScene(options, gameEngine) {
         return null;
     }
 
-    addToScene(scene) {
+    addToScene(gameEngine) {
         if (!this.mesh) {
             return null;
         }
         if (this.mesh.isMeshLink) {
-            scene.add(this.mesh.mesh);
+            gameEngine.graphicsEngine.scene.add(this.mesh.mesh);
             return;
         }
-        scene.add(this.mesh);
+        gameEngine.graphicsEngine.scene.add(this.mesh);
     }
 
     lerpMesh(last, lerp) {
@@ -77,14 +71,14 @@ const WorldObject = class {
             this._mesh = value;
             return;
         }
-        this.graphicsEngine.meshLinker.addMesh(this.id, value);
+        this.gameEngine.graphicsEngine.meshLinker.addMesh(this.id, value);
     }
 
     get mesh() {
         if (this.id == -1) {
             return this._mesh;
         }
-        return this.graphicsEngine.meshLinker.getByID(this.id);
+        return this.gameEngine.graphicsEngine.meshLinker.getByID(this.id) || this._mesh;
     }
 
     disposeMesh() {
@@ -115,7 +109,6 @@ const WorldObject = class {
         if (mesh.parent) {
             mesh.parent.remove(mesh);
         }
-
     }
 
     toJSON() {
@@ -126,16 +119,16 @@ const WorldObject = class {
         return json;
     }
 
-    static fromJSON(json, world, graphicsEngine) {
+    static fromJSON(json, gameEngine) {
         var worldObject = new this();
         worldObject.id = json.id;
-        worldObject.world = world;
+        worldObject.world = gameEngine.world;
         worldObject.toBeRemoved = json.toBeRemoved;
-        worldObject.graphicsEngine = graphicsEngine;
+        worldObject.gameEngine = gameEngine;
         return worldObject;
     }
 
-    updateReferences(world = this.world, graphicsEngine = this.world.graphicsEngine) {
+    updateReferences(gameEngine = this.gameEngine) {
 
     }
 

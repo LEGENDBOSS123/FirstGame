@@ -21,7 +21,9 @@ const World = class {
         this.broadphase = options?.broadphase ?? SpatialHash;
         this.spatialHash = options?.spatialHash ?? new this.broadphase({ world: this });
         this.collisionDetector = options?.collisionDetector ?? new CollisionDetector({ world: this });
-        this.graphicsEngine = options?.graphicsEngine ?? null;
+        this.gameEngine = options?.gameEngine ?? null;
+        this.linearSleepThreshold = options?.linearSleepThreshold ?? 0.00000001;
+        this.angularSleepThreshold = options?.angularSleepThreshold ?? 0.9999999;
     }
 
     setDeltaTime(deltaTime) {
@@ -51,8 +53,7 @@ const World = class {
 
     add(element) {
         element.id = (this.maxID++);
-        element.setWorld(this);
-        element.graphicsEngine = this.graphicsEngine;
+        element.gameEngine = this.gameEngine;
         element.mesh = element._mesh;
         element._mesh = null;
         this.all[element.id] = element;
@@ -68,6 +69,7 @@ const World = class {
         for (const child of element.children) {
             this.removeComposite(child, false);
         }
+        this.composites.splice(this.composites.indexOf(element), 1);
 
         this.remove(element);
     }
@@ -80,8 +82,8 @@ const World = class {
 
     remove(element) {
         element.dispatchEvent("delete");
-        element.disposeMesh();
-        this.graphicsEngine.meshLinker.removeMesh(element.id);
+        element._mesh = element.mesh;
+        this.gameEngine.graphicsEngine.meshLinker.removeMesh(element.id);
         this.spatialHash.remove(element.id);
         delete this.all[element.id];
     }
@@ -164,7 +166,7 @@ const World = class {
         return world;
     }
 
-    static fromJSON(json, graphicsEngine = this.graphicsEngine) {
+    static fromJSON(json, gameEngine = this.gameEngine) {
         const world = new this();
 
         world.maxID = json.maxID;
@@ -176,11 +178,11 @@ const World = class {
         world.all = {};
 
         for (var i in json.all) {
-            world.all[i] = ClassRegistry.getClassFromType(json.all[i].type).fromJSON(json.all[i], world, graphicsEngine);
+            world.all[i] = ClassRegistry.getClassFromType(json.all[i].type).fromJSON(json.all[i], gameEngine);
         }
 
         for (var i in world.all) {
-            world.all[i].updateReferences(world, graphicsEngine);
+            world.all[i].updateReferences(gameEngine);
         }
 
         for (var i in json.constraints) {
@@ -193,7 +195,7 @@ const World = class {
 
         world.spatialHash = new this.broadphase({ world: world });
         world.collisionDetector = CollisionDetector.fromJSON(json.collisionDetector, world);
-        world.graphicsEngine = graphicsEngine;
+        world.gameEngine = gameEngine;
         return world;
     }
 };

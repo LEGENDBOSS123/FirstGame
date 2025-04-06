@@ -15,6 +15,9 @@ import ParticleSystem from "./3D/Graphics/Particle/ParticleSystem.mjs";
 import Particle from "./3D/Graphics/Particle/Particle.mjs";
 import TextParticle from "./3D/Graphics/Particle/TextParticle.mjs";
 import DistanceConstraint from "./3D/Physics/Collision/DistanceConstraint.mjs";
+import GameEngine from "./3D/GameEngine.mjs";
+import Coin from "./3D/Entity/Coin.mjs";
+
 var stats = new Stats();
 var stats2 = new Stats();
 
@@ -25,48 +28,66 @@ stats2.showPanel(0);
 stats2.dom.style.left = "85px";
 document.body.appendChild(stats2.dom);
 
-var graphicsEngine = new GraphicsEngine({
-    window: window,
-    document: document,
-    container: document.body,
-    canvas: document.getElementById("canvas"),
+document.addEventListener('contextmenu', (event) => {
+    event.preventDefault();
 });
 
-graphicsEngine.ambientLight.intensity = 1;
-
-graphicsEngine.setBackgroundImage("autumn_field_puresky_8k.hdr", true, false);
-
-graphicsEngine.setSunlightDirection(new Vector3(-2, -8, -5));
-graphicsEngine.setSunlightBrightness(1);
-graphicsEngine.disableAO();
-graphicsEngine.renderDistance = 1600;
-graphicsEngine.cameraFar = 2000;
-window.graphicsEngine = graphicsEngine;
-
-
-
-var gameCamera = new CameraTHREEJS({ camera: graphicsEngine.camera, pullback: 5, maxPullback: 40 });
-var cameraControls = new SimpleCameraControls({
-    camera: gameCamera,
-    speed: 1,
-    pullbackRate: 0.2,
-    rotateMethods: {
-        wheel: true,
-        shiftLock: true,
-        drag: true
-    },
-    rotateSensitivity: {
-        wheel: 0.01,
-        shiftLock: 0.01,
-        drag: 0.01
-    },
-    shiftLockCursor: document.getElementById('shiftlockcursor'),
-    window: window,
-    document: document,
-    renderDomElement: document.body
+window.addEventListener('keydown', function (e) {
+    if (e.key == "r") {
+        player.respawn();
+        return;
+    }
 });
 
-cameraControls.addKeyBinds(
+
+
+var gameEngine = new GameEngine(
+    {
+        graphicsEngine: {
+            window: window,
+            document: document,
+            container: document.body,
+            canvas: document.getElementById("canvas")
+        },
+        gameCamera: {
+            pullback: 5,
+            maxPullback: 40
+        },
+        cameraControls: {
+            speed: 1,
+            pullbackRate: 0.2,
+            rotateMethods: {
+                wheel: true,
+                shiftLock: true,
+                drag: true
+            },
+            rotateSensitivity: {
+                wheel: 0.01,
+                shiftLock: 0.01,
+                drag: 0.01
+            },
+            shiftLockCursor: document.getElementById('shiftlockcursor'),
+            window: window,
+            document: document,
+            renderDomElement: document.body
+        },
+        particleSystem: {}
+
+    }
+);
+window.gameEngine = gameEngine;
+
+
+gameEngine.graphicsEngine.ambientLight.intensity = 1;
+gameEngine.graphicsEngine.setBackgroundImage("autumn_field_puresky_8k.hdr", true, false);
+gameEngine.graphicsEngine.setSunlightDirection(new Vector3(-2, -8, -5));
+gameEngine.graphicsEngine.setSunlightBrightness(1);
+gameEngine.graphicsEngine.disableAO();
+gameEngine.graphicsEngine.renderDistance = 1600;
+gameEngine.graphicsEngine.cameraFar = 2000;
+
+
+gameEngine.cameraControls.addKeyBinds(
     {
         ArrowUp: "forward",
         KeyW: "forward",
@@ -84,32 +105,8 @@ cameraControls.addKeyBinds(
     }
 );
 
-
-
-
-document.addEventListener('contextmenu', (event) => {
-    event.preventDefault();
-});
-
-window.addEventListener('keydown', function (e) {
-    if (e.key == "r") {
-        player.respawn();
-        return;
-    }
-});
-
-
-
-var world = new World();
-var entitySystem = new EntitySystem();
-
-top.world = world;
-top.entitySystem = entitySystem;
-
-world.setSubsteps(4);
-world.setIterations(16);
-
-world.graphicsEngine = graphicsEngine;
+gameEngine.world.setSubsteps(4);
+gameEngine.world.setIterations(16);
 
 var gravity = -0.4;
 var player = new Player({
@@ -121,17 +118,92 @@ var player = new Player({
     gravity: new Vector3(0, gravity, 0),
     position: new Vector3(0, 30, 0),
     mass: 1,
-    graphicsEngine: graphicsEngine
+    graphicsEngine: gameEngine.graphicsEngine
 });
-top.player = player;
-player.setMeshAndAddToScene({}, graphicsEngine);
-entitySystem.register(player);
-player.addToWorld(world);
 
-var map = await graphicsEngine.loadMap("map.glb");
+player.setMeshAndAddToScene({}, gameEngine);
+gameEngine.entitySystem.register(player);
+player.addToWorld(gameEngine.world);
+function createCoinDisplay(coinSymbol = "$", initialCoinCount = 0) {
+    const coinContainer = document.createElement('div');
+    coinContainer.style.position = 'fixed';
+    coinContainer.style.top = '40px';
+    coinContainer.style.right = '40px';
+    coinContainer.style.backgroundColor = '#222';
+    coinContainer.style.border = '1px solid #555';
+    coinContainer.style.borderRadius = '10px';
+    coinContainer.style.padding = '16px 24px';
+    coinContainer.style.display = 'flex';
+    coinContainer.style.alignItems = 'center';
+    coinContainer.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.3)';
+    coinContainer.style.zIndex = '1000';
+    coinContainer.style.fontFamily = 'Arial, sans-serif';
+    coinContainer.style.fontSize = '32px';
+    coinContainer.style.color = '#eee';
+    coinContainer.style.transition = 'transform 0.15s ease-in-out';
+
+    const symbolSpan = document.createElement('span');
+    symbolSpan.textContent = coinSymbol;
+    symbolSpan.style.marginRight = '16px';
+    symbolSpan.style.fontSize = '2.4em';
+    symbolSpan.style.color = '#ffc107';
+
+    const countSpan = document.createElement('span');
+    countSpan.textContent = initialCoinCount;
+    countSpan.style.fontWeight = 'bold';
+    countSpan.style.transition = 'opacity 0.15s ease-in-out, transform 0.15s ease-in-out';
+
+    coinContainer.appendChild(symbolSpan);
+    coinContainer.appendChild(countSpan);
+
+    document.body.appendChild(coinContainer);
+
+    let currentCount = initialCoinCount; // Keep track of the count
+
+    return {
+        updateCount: function (newCount) {
+            if (typeof newCount !== 'number') {
+                console.error('updateCount: newCount must be a number');
+                return; // Exit if newCount is not a number
+            }
+
+            if (newCount === currentCount) return; // Don't animate if the count is the same
+
+            currentCount = newCount; // Update the currentCount
+
+            // Small scale animation for the container
+            coinContainer.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                coinContainer.style.transform = 'scale(1)';
+            }, 150);
+
+            // Fade out and scale down the old count
+            countSpan.style.opacity = '0.5';
+            countSpan.style.transform = 'scale(0.9)';
+
+            // Update the count after a short delay and animate it in
+            setTimeout(() => {
+                countSpan.textContent = newCount;
+                countSpan.style.opacity = '1';
+                countSpan.style.transform = 'scale(1)';
+            }, 150);
+        },
+        getCount: function () {
+            return currentCount;
+        }
+    };
+}
+
+const coinCounter = createCoinDisplay("C", 0);
+
+
+
+var map = await gameEngine.loadMap("map.glb", {
+    "Coin": Coin
+});
 for (const obj of map.objects) {
-    world.addComposite(obj);
-    obj.addToScene(graphicsEngine.scene);
+    gameEngine.world.addComposite(obj);
+    obj.addToScene(gameEngine);
     if (obj.name.toLowerCase().includes("start")) {
         player.setStartPoint(obj.global.body.position);
         player.respawn();
@@ -145,44 +217,39 @@ for (const obj of map.objects) {
     }
 }
 for (var mesh of map.meshes) {
-    graphicsEngine.addToScene(mesh);
+    gameEngine.graphicsEngine.addToScene(mesh);
+}
+for (var entity of map.entities) {
+    entity.setMeshAndAddToScene({}, gameEngine);
+    gameEngine.entitySystem.register(entity);
+    entity.addToWorld(gameEngine.world);
 }
 
 
-var fps = 20;
-var previousWorld = 0;
 
-var timer = new Timer();
-var stepper = new Timer.Interval(1000 / fps);
-timer.schedule(stepper);
-var particleSystem = new ParticleSystem({
-    timer: timer,
-    graphicsEngine: graphicsEngine
-});
+gameEngine.timer.schedule(gameEngine.fpsStepper);
+
 function render() {
     stats.begin();
-    cameraControls.update();
-
-    cameraControls.updateZoom();
+    gameEngine.cameraControls.update();
 
 
-    stepper.job = function () {
-        player.updateKeys(cameraControls.movement, cameraControls.justToggled, cameraControls.getDelta(graphicsEngine.camera));
-        cameraControls.reset();
-        player.update(graphicsEngine);
+    gameEngine.fpsStepper.job = function () {
+        player.updateKeys(gameEngine);
+        gameEngine.cameraControls.reset();
+        gameEngine.updateEntitiesStep();
 
         stats2.begin();
-        previousWorld = world.toJSON();
-
-        world.step();
-
+        gameEngine.stepWorld();
         stats2.end();
     }
-    graphicsEngine.update(previousWorld || world, world, stepper.getLerpAmount());
-    gameCamera.update(Vector3.from(player.getMainShape()?.mesh?.mesh?.position), graphicsEngine);
-    particleSystem.update();
-    graphicsEngine.render();
-    timer.step();
+    coinCounter.updateCount(player.money);
+    gameEngine.updateEntities();
+    gameEngine.updateGraphicsEngine();
+    gameEngine.updateGameCamera(Vector3.from(player.getMainShape()?.mesh?.mesh?.position));
+    gameEngine.particleSystem.update();
+    gameEngine.graphicsEngine.render();
+    gameEngine.timer.step();
     requestAnimationFrame(render);
 
     stats.end();

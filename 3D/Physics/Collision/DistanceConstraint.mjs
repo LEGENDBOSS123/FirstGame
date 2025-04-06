@@ -125,18 +125,18 @@ const DistanceConstraint = class extends Constraint {
         return true;
     }
 
-    setMesh(options, graphicsEngine) {
-        var geometry = new graphicsEngine.THREE.BufferGeometry().setFromPoints(this.getPoints());
-        var material = new graphicsEngine.THREE.LineBasicMaterial({ color: options?.color ?? 0xff0000 });
-        material.side = graphicsEngine.THREE.DoubleSide;
-        var line = new graphicsEngine.THREE.Line(geometry, material);
+    setMesh(options, gameEngine) {
+        var geometry = new gameEngine.graphicsEngine.THREE.BufferGeometry().setFromPoints(this.getPoints());
+        var material = new gameEngine.graphicsEngine.THREE.LineBasicMaterial({ color: options?.color ?? 0xff0000 });
+        material.side = gameEngine.graphicsEngine.THREE.DoubleSide;
+        var line = new gameEngine.graphicsEngine.THREE.Line(geometry, material);
         line.frustumCulled = false;
-        this.mesh = graphicsEngine.meshLinker.createMeshData(line);
+        this.mesh = gameEngine.graphicsEngine.meshLinker.createMeshData(line);
     }
 
-    setMeshAndAddToScene(options, graphicsEngine) {
-        this.setMesh(options, graphicsEngine);
-        this.addToScene(graphicsEngine.scene);
+    setMeshAndAddToScene(options, gameEngine) {
+        this.setMesh(options, gameEngine);
+        this.addToScene(gameEngine);
     }
 
     applyForces() {
@@ -212,12 +212,11 @@ const DistanceConstraint = class extends Constraint {
         return distanceConstraint;
     }
 
-    updateReferences(world = this.world, graphicsEngine = this.world.graphicsEngine) {
-        this.body1 = world.getByID(this.body1);
-        this.body2 = world.getByID(this.body2);
-        console.log("E")
-        if (graphicsEngine) {
-            this.graphicsEngine = graphicsEngine;
+    updateReferences(gameEngine = this.gameEngine) {
+        this.body1 = gameEngine.world.getByID(this.body1);
+        this.body2 = gameEngine.world.getByID(this.body2);
+        if (gameEngine) {
+            this.gameEngine = gameEngine;
         }
     }
 };

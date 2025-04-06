@@ -169,6 +169,8 @@ const SimpleCameraControls = class {
         if(this.isDragging){
             this.processAction("click");
         }
+
+        this.updateZoom();
     }
 
     updateZoom() {

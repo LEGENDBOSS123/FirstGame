@@ -107,8 +107,8 @@ const Polyhedron = class extends Composite {
         return this.global.hitbox;
     }
 
-    setMesh(options, graphicsEngine) {
-        var geometry = new graphicsEngine.THREE.BufferGeometry();
+    setMesh(options, gameEngine) {
+        var geometry = new gameEngine.graphicsEngine.THREE.BufferGeometry();
         var positions = new Float32Array(this.faces.length * 9);
         var normals = new Float32Array(this.faces.length * 9);
         var indices = [];
@@ -145,21 +145,21 @@ const Polyhedron = class extends Composite {
             indices.push(vertexIndex * 3, vertexIndex * 3 + 1, vertexIndex * 3 + 2);
             vertexIndex++;
         }
-        geometry.setAttribute('position', new graphicsEngine.THREE.BufferAttribute(positions, 3));
-        geometry.setAttribute('normal', new graphicsEngine.THREE.BufferAttribute(normals, 3));
+        geometry.setAttribute('position', new gameEngine.graphicsEngine.THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('normal', new gameEngine.graphicsEngine.THREE.BufferAttribute(normals, 3));
         geometry.setIndex(indices);
         geometry.computeVertexNormals();
 
-        var material = options?.material ?? new graphicsEngine.THREE.MeshPhongMaterial({ color: options?.color ?? 0x00ff00, wireframe: false, side: graphicsEngine.THREE.DoubleSide });
-        this.mesh = graphicsEngine.meshLinker.createMeshData(new graphicsEngine.THREE.Mesh(geometry, material));
+        var material = options?.material ?? new gameEngine.graphicsEngine.THREE.MeshPhongMaterial({ color: options?.color ?? 0x00ff00, wireframe: false, side: gameEngine.graphicsEngine.THREE.DoubleSide });
+        this.mesh = gameEngine.graphicsEngine.meshLinker.createMeshData(new gameEngine.graphicsEngine.THREE.Mesh(geometry, material));
     }
 
-    setMeshAndAddToScene(options, graphicsEngine) {
-        this.setMesh(options, graphicsEngine);
-        this.addToScene(graphicsEngine.scene);
+    setMeshAndAddToScene(options, gameEngine) {
+        this.setMesh(options, gameEngine);
+        this.addToScene(gameEngine);
     }
 
-    fromMesh(mesh, graphicsEngine) {
+    fromMesh(mesh, gameEngine) {
         const geometry = mesh.geometry;
         var vertices = [];
         var faces = [];
@@ -195,8 +195,8 @@ const Polyhedron = class extends Composite {
         }
         this.localVertices = vertices;
         this.faces = faces;
-        var pos = Vector3.from(mesh.getWorldPosition(new graphicsEngine.THREE.Vector3()));
-        var quat = Quaternion.from(mesh.getWorldQuaternion(new graphicsEngine.THREE.Quaternion));
+        var pos = Vector3.from(mesh.getWorldPosition(new gameEngine.graphicsEngine.THREE.Vector3()));
+        var quat = Quaternion.from(mesh.getWorldQuaternion(new gameEngine.graphicsEngine.THREE.Quaternion()));
         this.global.body.rotation = quat;
         this.global.body.setPosition(pos);
         this.global.body.actualPreviousPosition = this.global.body.position.copy();

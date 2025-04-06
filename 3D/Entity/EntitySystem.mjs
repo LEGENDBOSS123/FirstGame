@@ -18,9 +18,26 @@ var EntitySystem = class {
         return id;
     }
 
+    remove(entity) {
+        delete this.all[entity.id];
+        delete this.shapeLookup[entity.oldShape.maxParent.id];
+    }
+
     getEntityFromShape(shape) {
         var id = shape.maxParent.id;
         return this.shapeLookup[id];
+    }
+
+    updateStep(gameEngine){
+        for(const entity in this.all){
+            this.all[entity].updateStep(gameEngine);
+        }
+    }
+
+    update(gameEngine){
+        for(const entity in this.all){
+            this.all[entity].update(gameEngine);
+        }
     }
 };
 

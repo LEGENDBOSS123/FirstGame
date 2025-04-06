@@ -324,22 +324,22 @@ const Terrain3 = class extends Composite {
         geometry.computeBoundingSphere();
     }
 
-    setMeshAndAddToScene(options, graphicsEngine) {
-        this.setMesh(options, graphicsEngine);
-        this.addToScene(graphicsEngine.scene);
+    setMeshAndAddToScene(options, gameEngine) {
+        this.setMesh(options, gameEngine);
+        this.addToScene(gameEngine);
     }
 
-    setMesh(options, graphicsEngine) {
-        var material = options?.material ?? new graphicsEngine.THREE.MeshPhongMaterial({ color: 0x00ff00 });
-        var topGeo = new graphicsEngine.THREE.PlaneGeometry(this.terrainWidth, this.terrainDepth, this.heightmaps.widthSegments, this.heightmaps.depthSegments);
+    setMesh(options, gameEngine) {
+        var material = options?.material ?? new gameEngine.graphicsEngine.THREE.MeshPhongMaterial({ color: 0x00ff00 });
+        var topGeo = new gameEngine.graphicsEngine.THREE.PlaneGeometry(this.terrainWidth, this.terrainDepth, this.heightmaps.widthSegments, this.heightmaps.depthSegments);
         topGeo.rotateX(-Math.PI / 2);
         this.calculateMeshVertices(topGeo, this.heightmaps.top);
 
-        var botGeo = new graphicsEngine.THREE.PlaneGeometry(this.terrainWidth, this.terrainDepth, this.heightmaps.widthSegments, this.heightmaps.depthSegments);
+        var botGeo = new gameEngine.graphicsEngine.THREE.PlaneGeometry(this.terrainWidth, this.terrainDepth, this.heightmaps.widthSegments, this.heightmaps.depthSegments);
         botGeo.rotateX(-Math.PI / 2);
         this.calculateMeshVertices(botGeo, this.heightmaps.bottom);
 
-        var leftGeo = new graphicsEngine.THREE.PlaneGeometry(this.terrainWidth, 1, this.heightmaps.widthSegments, 1);
+        var leftGeo = new gameEngine.graphicsEngine.THREE.PlaneGeometry(this.terrainWidth, 1, this.heightmaps.widthSegments, 1);
         leftGeo.translate(0, 0, -this.terrainDepth / 2);
 
         var leftAttrib = leftGeo.attributes;
@@ -356,7 +356,7 @@ const Terrain3 = class extends Composite {
         leftGeo.computeVertexNormals();
         leftGeo.computeBoundingSphere();
 
-        var rightGeo = new graphicsEngine.THREE.PlaneGeometry(this.terrainWidth, 1, this.heightmaps.widthSegments, 1);
+        var rightGeo = new gameEngine.graphicsEngine.THREE.PlaneGeometry(this.terrainWidth, 1, this.heightmaps.widthSegments, 1);
         rightGeo.translate(0, 0, this.terrainDepth / 2);
 
         var rightAttrib = rightGeo.attributes;
@@ -372,7 +372,7 @@ const Terrain3 = class extends Composite {
         rightAttrib.position.needsUpdate = true;
         rightGeo.computeVertexNormals();
         rightGeo.computeBoundingSphere();
-        var forwardGeo = new graphicsEngine.THREE.PlaneGeometry(this.terrainDepth, 1, this.heightmaps.depthSegments, 1);
+        var forwardGeo = new gameEngine.graphicsEngine.THREE.PlaneGeometry(this.terrainDepth, 1, this.heightmaps.depthSegments, 1);
         forwardGeo.rotateY(-Math.PI / 2);
         forwardGeo.translate(this.terrainWidth / 2, 0, 0);
 
@@ -390,7 +390,7 @@ const Terrain3 = class extends Composite {
         forwardGeo.computeVertexNormals();
         forwardGeo.computeBoundingSphere();
 
-        var backGeo = new graphicsEngine.THREE.PlaneGeometry(this.terrainDepth, 1, this.heightmaps.depthSegments, 1);
+        var backGeo = new gameEngine.graphicsEngine.THREE.PlaneGeometry(this.terrainDepth, 1, this.heightmaps.depthSegments, 1);
         backGeo.rotateY(-Math.PI / 2);
         backGeo.translate(-this.terrainWidth / 2, 0, 0);
 
@@ -409,25 +409,25 @@ const Terrain3 = class extends Composite {
         backGeo.computeBoundingSphere();
 
 
-        this.mesh = graphicsEngine.meshLinker.createMeshData(new graphicsEngine.THREE.Mesh());
+        this.mesh = gameEngine.graphicsEngine.meshLinker.createMeshData(new gameEngine.graphicsEngine.THREE.Mesh());
 
         var topMaterial = material.clone();
         var botMaterial = material.clone();
-        botMaterial.side = graphicsEngine.THREE.BackSide;
+        botMaterial.side = gameEngine.graphicsEngine.THREE.BackSide;
         var leftMaterial = material.clone();
-        leftMaterial.side = graphicsEngine.THREE.BackSide;
+        leftMaterial.side = gameEngine.graphicsEngine.THREE.BackSide;
         var rightMaterial = material.clone();
         var forwardMaterial = material.clone();
-        forwardMaterial.side = graphicsEngine.THREE.BackSide;
+        forwardMaterial.side = gameEngine.graphicsEngine.THREE.BackSide;
         var backMaterial = material.clone();
 
 
-        var topMesh = new graphicsEngine.THREE.Mesh(topGeo, topMaterial);
-        var botMesh = new graphicsEngine.THREE.Mesh(botGeo, botMaterial);
-        var leftMesh = new graphicsEngine.THREE.Mesh(leftGeo, leftMaterial);
-        var rightMesh = new graphicsEngine.THREE.Mesh(rightGeo, rightMaterial);
-        var forwardMesh = new graphicsEngine.THREE.Mesh(forwardGeo, forwardMaterial);
-        var backMesh = new graphicsEngine.THREE.Mesh(backGeo, backMaterial);
+        var topMesh = new gameEngine.graphicsEngine.THREE.Mesh(topGeo, topMaterial);
+        var botMesh = new gameEngine.graphicsEngine.THREE.Mesh(botGeo, botMaterial);
+        var leftMesh = new gameEngine.graphicsEngine.THREE.Mesh(leftGeo, leftMaterial);
+        var rightMesh = new gameEngine.graphicsEngine.THREE.Mesh(rightGeo, rightMaterial);
+        var forwardMesh = new gameEngine.graphicsEngine.THREE.Mesh(forwardGeo, forwardMaterial);
+        var backMesh = new gameEngine.graphicsEngine.THREE.Mesh(backGeo, backMaterial);
 
         this.mesh.mesh.add(topMesh);
         this.mesh.mesh.add(botMesh);

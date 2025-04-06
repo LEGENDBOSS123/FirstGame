@@ -2,7 +2,7 @@ var ParticleSystem = class {
     constructor(options){
         this.particles = new Set();
         this.timer = options?.timer ?? null;
-        this.graphicsEngine = options?.graphicsEngine ?? null;
+        this.gameEngine = options?.gameEngine ?? null;
         this.maxParticles = options?.maxParticles ?? 64;
     }
 
@@ -11,7 +11,7 @@ var ParticleSystem = class {
             return;
         }
         particle.startTime = this.timer.getTime();
-        particle.setMeshAndAddToScene(null, this.graphicsEngine);
+        particle.setMeshAndAddToScene(null, this.gameEngine);
         this.particles.add(particle);
     }
 

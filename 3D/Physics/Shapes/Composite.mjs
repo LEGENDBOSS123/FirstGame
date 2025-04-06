@@ -364,8 +364,8 @@ const Composite = class extends WorldObject {
         this.calculateGlobalHitbox();
         const projectedHitbox = this.global.hitbox.translate(this.global.body.getVelocity().scale(-1));
         this.global.expandedHitbox = Hitbox3.fromHitboxes([projectedHitbox, this.global.hitbox]);
-        if (this.world?.spatialHash && this.getLocalFlag(this.constructor.FLAGS.OCCUPIES_SPACE)) {
-            this.world.spatialHash.addHitbox(this.global.expandedHitbox, this.id);
+        if (this.gameEngine.world?.spatialHash && this.getLocalFlag(this.constructor.FLAGS.OCCUPIES_SPACE)) {
+            this.gameEngine.world.spatialHash.addHitbox(this.global.expandedHitbox, this.id);
         }
         for (const child of this.children) {
             child.updateGlobalHitboxAll();
@@ -397,12 +397,12 @@ const Composite = class extends WorldObject {
 
     update() {
         if (!this.isMaxParent()) {
-            this.local.body.update(this.world);
+            this.local.body.update(this.gameEngine.world);
             this.global.body.actualPreviousPosition.set(this.global.body.position);
             this.global.body.previousRotation.set(this.global.body.rotation);
             return;
         }
-        this.global.body.update(this.world);
+        this.global.body.update(this.gameEngine.world);
     }
 
     updateBeforeCollisionAll() {
@@ -421,13 +421,13 @@ const Composite = class extends WorldObject {
     }
 
     updateIsSleepy() {
-        this.isSleepy = this.global.body.getVelocity().magnitudeSquared() < 0.0001 && this.global.body.actualPreviousPosition.distanceSquared(this.global.body.position) < 0.0001 && this.global.body.previousRotation.dot(this.global.body.rotation) > 0.999;
+        this.isSleepy = this.global.body.getVelocity().magnitudeSquared() < this.gameEngine.world.linearSleepThreshold && this.global.body.actualPreviousPosition.distanceSquared(this.global.body.position) < this.gameEngine.world.linearSleepThreshold && this.global.body.previousRotation.dot(this.global.body.rotation) > this.gameEngine.world.angularSleepThreshold;
     }
 
     updateSleepAll() {
         this.updateIsSleepy();
         for (const c of this.contacts) {
-            const c2 = this.world.getByID(c);
+            const c2 = this.gameEngine.world.getByID(c);
             if (c2 && !c2.isSleepy) {
                 this.awaken();
                 break;
@@ -502,7 +502,7 @@ const Composite = class extends WorldObject {
     toJSON() {
         const composite = super.toJSON();
         composite.id = this.id;
-        composite.world = this.world?.id ?? null;
+        composite.world = this.gameEngine?.world?.id ?? null;
         composite.parent = this.parent?.id ?? null;
         composite.maxParent = this.maxParent.id;
         composite.children = [];
@@ -526,8 +526,8 @@ const Composite = class extends WorldObject {
         return composite;
     }
 
-    static fromJSON(json, world, graphicsEngine) {
-        const composite = super.fromJSON(json, world, graphicsEngine);
+    static fromJSON(json, gameEngine) {
+        const composite = super.fromJSON(json, gameEngine);
         composite.world = world;
         composite.id = json.id;
         composite.parent = json.parent;
@@ -545,21 +545,21 @@ const Composite = class extends WorldObject {
         composite.local.body = PhysicsBody3.fromJSON(json.local.body, world);
         composite.local.hitbox = Hitbox3.fromJSON(json.local.hitbox, world);
         composite.local.flags = json.local.flags;
-        composite.graphicsEngine = graphicsEngine;
+        composite.gameEngine = gameEngine;
         composite.sleeping = json.sleeping;
         composite.sleepThreshold = json.sleepThreshold;
         composite.sleepCounter = json.sleepCounter;
         return composite;
     }
 
-    updateReferences(world = this.world, graphicsEngine = this.world.graphicsEngine) {
+    updateReferences(gameEngine = this.gameEngine) {
         this.parent = this.parent == null ? null : world.getByID(this.parent);
-        this.maxParent = world.getByID(this.maxParent);
+        this.maxParent = gameEngine.world.getByID(this.maxParent);
         for (var i = 0; i < this.children.length; i++) {
             this.children[i] = world.getByID(this.children[i]);
         }
-        if (graphicsEngine) {
-            this.graphicsEngine = graphicsEngine;
+        if (gameEngine) {
+            this.gameEngine = gameEngine;
         }
     }
 }

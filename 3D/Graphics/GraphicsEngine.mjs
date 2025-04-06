@@ -233,52 +233,6 @@ var GraphicsEngine = class {
         return this.textureLoader.load(url, onLoad, onProgress, onError);
     }
 
-    async loadMap(url) {
-        const map = { objects: [], meshes: [] };
-        const traverse = function (child, colliderParsed) {
-            if (child.isMesh) {
-                child.castShadow = true;
-                child.receiveShadow = true;
-                child.material.depthWrite = true;
-                if (!colliderParsed) {
-                    var invalidShape = false;
-                    var shape = Composite;
-                    if (child.name.startsWith("Box")) {
-                        shape = Box;
-                    }
-                    else if (child.name.startsWith("Sphere")) {
-                        shape = Sphere;
-                    }
-                    else if (child.name.startsWith("Poly")) {
-                        shape = Polyhedron;
-                    }
-                    else {
-                        map.meshes.push(child);
-                        invalidShape = true;
-                    }
-
-                    if (!invalidShape) {
-                        var obj = new shape({
-                            name: child.name
-                        }).fromMesh(child, this);
-                        obj.mesh = this.meshLinker.createMeshData(child);
-                        obj.mesh.mesh.isPhysicsObject = true;
-                        obj.setLocalFlag(Composite.FLAGS.STATIC, true);
-                        map.objects.push(obj);
-                    }
-
-                    colliderParsed = true;
-                }
-            }
-            for (const c of child.children) {
-                traverse(c, colliderParsed);
-            }
-        }.bind(this);
-        var gltf = await this.textureLoader.load(url);
-        traverse(gltf.scene);
-        return map;
-    }
-
     enableAO() {
         this.n8aoPass.enabled = true;
     }

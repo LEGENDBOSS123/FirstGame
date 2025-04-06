@@ -21,8 +21,8 @@ const Constraint = class extends WorldObject {
         return json;
     }
 
-    static fromJSON(json, world){
-        var constraint = super.fromJSON(json, world, graphicsEngine);
+    static fromJSON(json, gameEngine){
+        var constraint = super.fromJSON(json, gameEngine);
         constraint.ignore = json.ignore;
         return constraint;
     }

@@ -56,12 +56,12 @@ var Particle = class {
         this.createdText = true;
     }
 
-    setMeshAndAddToScene(options, graphicsEngine) {
+    setMeshAndAddToScene(options, gameEngine) {
         this.texture = this.createCanvasTexture();
         this.spriteMaterial = new THREE.SpriteMaterial({ map: this.texture });
         this.sprite = new THREE.Sprite(this.spriteMaterial);
         this.sprite.scale.set(this.canvas.canvas.width / this.canvas.canvas.height * this.size, this.size, 1);
-        this.scene = graphicsEngine.scene;
+        this.scene = gameEngine.graphicsEngine.scene;
         this.scene.add(this.sprite);
     }
 

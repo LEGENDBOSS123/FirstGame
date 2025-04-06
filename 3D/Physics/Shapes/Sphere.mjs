@@ -42,21 +42,21 @@ const Sphere = class extends Composite {
         return this.local.body.momentOfInertia;
     }
 
-    setMesh(options, graphicsEngine) {
-        var geometry = options?.geometry ?? new graphicsEngine.THREE.SphereGeometry(this.radius, 32, 32);
-        this.mesh = graphicsEngine.meshLinker.createMeshData(new graphicsEngine.THREE.Mesh(geometry, options?.material ?? new graphicsEngine.THREE.MeshPhongMaterial({ color: 0x00ff00, wireframe: true })));
+    setMesh(options, gameEngine) {
+        var geometry = options?.geometry ?? new gameEngine.graphicsEngine.THREE.SphereGeometry(this.radius, 32, 32);
+        this.mesh = gameEngine.graphicsEngine.meshLinker.createMeshData(new gameEngine.graphicsEngine.THREE.Mesh(geometry, options?.material ?? new gameEngine.graphicsEngine.THREE.MeshPhongMaterial({ color: 0x00ff00, wireframe: true })));
     }
 
-    setMeshAndAddToScene(options, graphicsEngine) {
-        this.setMesh(options, graphicsEngine);
-        this.addToScene(graphicsEngine.scene);
+    setMeshAndAddToScene(options, gameEngine) {
+        this.setMesh(options, gameEngine);
+        this.addToScene(gameEngine);
     }
 
-    fromMesh(mesh, graphicsEngine) {
+    fromMesh(mesh, gameEngine) {
         this.radius = mesh.scale.x;
 
-        var pos = Vector3.from(mesh.getWorldPosition(new graphicsEngine.THREE.Vector3()));
-        var quat = Quaternion.from(mesh.getWorldQuaternion(new graphicsEngine.THREE.Quaternion));
+        var pos = Vector3.from(mesh.getWorldPosition(new gameEngine.graphicsEngine.THREE.Vector3()));
+        var quat = Quaternion.from(mesh.getWorldQuaternion(new gameEngine.graphicsEngine.THREE.Quaternion()));
         this.global.body.rotation = quat;
         this.global.body.setPosition(pos);
         this.global.body.actualPreviousPosition = this.global.body.position.copy();
