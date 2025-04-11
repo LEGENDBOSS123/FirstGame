@@ -44,6 +44,12 @@ const World = class {
     addComposite(composite) {
         this.add(composite);
         this.composites.push(composite);
+
+        for(const child of composite.children) {
+            if(!this.getByID(child.id)) {
+                this.addComposite(child);
+            }
+        }
     }
 
     addConstraint(element) {
@@ -86,6 +92,7 @@ const World = class {
         this.gameEngine.graphicsEngine.meshLinker.removeMesh(element.id);
         this.spatialHash.remove(element.id);
         delete this.all[element.id];
+        element.id = -1;
     }
 
     step() {
