@@ -201,7 +201,7 @@ const coinCounter = createCoinDisplay("C", 0);
 
 
 
-var map = await gameEngine.loadMap("polytest.glb", {
+var map = await gameEngine.loadMap("polytest2.glb", {
     "Coin": Coin
 });
 for (const obj of map.objects) {

@@ -27,24 +27,36 @@ const Polyhedron = class extends Composite {
             [2, 3, 7], [2, 7, 6], [0, 4, 7],
             [0, 7, 3], [1, 2, 6], [1, 6, 5],
         ];
+        this.normals = [];
         this.isConvex = false;
         this.setLocalFlag(this.constructor.FLAGS.OCCUPIES_SPACE, true);
         this.dimensionsChanged();
     }
 
     dimensionsChanged() {
-        this.isConvex = this.determineConcavity(this.faces, this.localVertices);
+        this.normals = Polyhedron.determineNormals(this.faces, this.localVertices);
+        this.isConvex = this.constructor.determineConcavity(this.faces, this.localVertices, this.normals);
         super.dimensionsChanged();
     }
 
-    determineConcavity(faces, vertices) {
+    static determineNormals(faces, vertices) {
+        const normals = [];
+        for (const face of faces) {
+            const a = vertices[face[0]];
+            const b = vertices[face[1]];
+            const c = vertices[face[2]];
+            const normal = b.subtract(a).cross(c.subtract(a));
+            normals.push(normal.normalize());
+        }
+        return normals;
+    }
+
+    static determineConcavity(faces, vertices, normals) {
         for (const point of vertices) {
-            for (const face of faces) {
-                const a = vertices[face[0]];
-                const b = vertices[face[1]];
-                const c = vertices[face[2]];
-                const normal = b.subtract(a).cross(c.subtract(a));
-                if (a.subtract(point).dot(normal) < 0) {
+            for (var face = 0; face < faces.length; face++) {
+                const a = vertices[faces[face][0]];
+                const normal = normals[face];
+                if (a.subtract(point).dot(normal) < -1e-6) {
                     return false;
                 }
             }

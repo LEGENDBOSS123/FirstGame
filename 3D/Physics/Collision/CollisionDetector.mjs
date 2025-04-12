@@ -361,10 +361,10 @@ const CollisionDetector = class {
             inside = 0;
             isInside = poly.isConvex;
             
-            for (var face of poly.faces) {
-                var a = poly.localVertices[face[0]];
-                var b = poly.localVertices[face[1]];
-                var c = poly.localVertices[face[2]];
+            for (var face = 0; face < poly.faces.length; face++) {
+                var a = poly.localVertices[poly.faces[face][0]];
+                var b = poly.localVertices[poly.faces[face][1]];
+                var c = poly.localVertices[poly.faces[face][2]];
                 min.x = Math.min(a.x, b.x, c.x);
                 max.x = Math.max(a.x, b.x, c.x);
 
@@ -377,15 +377,16 @@ const CollisionDetector = class {
                 if (!poly.isConvex && this.horizontalRayIntersectsTriangle(relativePos, a, b, c)) {
                     inside++;
                 }
-                if (!disableHitbox && !(min.x <= relativePos.x + tempVec.x && max.x >= relativePos.x - tempVec.x && min.y <= relativePos.y + tempVec.y && max.y >= relativePos.y - tempVec.y && min.z <= relativePos.z + tempVec.z && max.z >= relativePos.z - tempVec.z)) {
-                    continue;
-                }
-
-                var normal = b.subtract(a).cross(c.subtract(a)).normalize();
+                var normal = poly.normals[face].copy();
 
                 if (poly.isConvex && a.subtract(relativePos).dot(normal) < 0) {
                     isInside = false;
                 }
+                if (!disableHitbox && !(min.x <= relativePos.x + tempVec.x && max.x >= relativePos.x - tempVec.x && min.y <= relativePos.y + tempVec.y && max.y >= relativePos.y - tempVec.y && min.z <= relativePos.z + tempVec.z && max.z >= relativePos.z - tempVec.z)) {
+                    continue;
+                }
+
+                
                 
                 var closest = this.closestPointOnTriangle(relativePos, a, b, c);
                 var distSq = closest.subtract(relativePos).magnitudeSquared();
