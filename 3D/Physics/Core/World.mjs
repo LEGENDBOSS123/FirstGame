@@ -42,17 +42,20 @@ const World = class {
     }
 
     addComposite(composite) {
-        this.add(composite);
-        this.composites.push(composite);
+        if (!this.getByID(composite.id)) {
+            this.add(composite);
+            this.composites.push(composite);
+        }
 
-        for(const child of composite.children) {
-            if(!this.getByID(child.id)) {
-                this.addComposite(child);
-            }
+        for (const child of composite.children) {
+            this.addComposite(child);
         }
     }
 
     addConstraint(element) {
+        if(this.getByID(element.id)) {
+            return;
+        }
         this.add(element);
         this.constraints.push(element);
     }
@@ -108,13 +111,13 @@ const World = class {
                     comp.updateBeforeCollisionAll();
                 }
             }
-            for (const comp of this.composites) {
-                comp.updateSleepAll();
-            }
+            
             this.collisionDetector.handleAll(this.composites);
             this.collisionDetector.resolveAll();
+            
             for (const comp of this.composites) {
                 if (comp.isMaxParent()) {
+                    comp.updateSleepAll();
                     comp.updateAfterCollisionAll();
                 }
                 comp.dispatchEvent("postSubstep");

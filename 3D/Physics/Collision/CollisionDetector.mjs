@@ -293,7 +293,7 @@ const CollisionDetector = class {
 
 
     horizontalRayIntersectsTriangle(orig, a, b, c) {
-        const EPSILON = 1e-8;
+        const EPSILON = 1e-6;
         const ax = a.x;
         const ay = a.y;
         const az = a.z;
@@ -349,6 +349,8 @@ const CollisionDetector = class {
         var closestNormal = null;
         var isInside = false;
         var tempVec = new Vector3(1, 1, 1).scale(sphere.radius);
+        var min = new Vector3();
+        var max = new Vector3();
         var binarySearch = function (t, disableHitbox = false) {
             spherePos = sphere.global.body.previousPosition.lerp(sphere.global.body.position, t);
             polyPos = poly.global.body.previousPosition.lerp(poly.global.body.position, t);
@@ -358,8 +360,7 @@ const CollisionDetector = class {
             minDistanceSquared = Infinity;
             inside = 0;
             isInside = poly.isConvex;
-            var min = new Vector3();
-            var max = new Vector3();
+            
             for (var face of poly.faces) {
                 var a = poly.localVertices[face[0]];
                 var b = poly.localVertices[face[1]];
@@ -373,21 +374,19 @@ const CollisionDetector = class {
                 min.z = Math.min(a.z, b.z, c.z);
                 max.z = Math.max(a.z, b.z, c.z);
 
-                var normal = b.subtract(a).cross(c.subtract(a)).normalize();
                 if (!poly.isConvex && this.horizontalRayIntersectsTriangle(relativePos, a, b, c)) {
                     inside++;
                 }
+                if (!disableHitbox && !(min.x <= relativePos.x + tempVec.x && max.x >= relativePos.x - tempVec.x && min.y <= relativePos.y + tempVec.y && max.y >= relativePos.y - tempVec.y && min.z <= relativePos.z + tempVec.z && max.z >= relativePos.z - tempVec.z)) {
+                    continue;
+                }
+
+                var normal = b.subtract(a).cross(c.subtract(a)).normalize();
+
                 if (poly.isConvex && a.subtract(relativePos).dot(normal) < 0) {
                     isInside = false;
                 }
-
-                if (!(min.x <= relativePos.x + tempVec.x && max.x >= relativePos.x - tempVec.x && min.y <= relativePos.y + tempVec.y && max.y >= relativePos.y - tempVec.y && min.z <= relativePos.z + tempVec.z && max.z >= relativePos.z - tempVec.z)) {
-                    if (!disableHitbox) {
-                        continue;
-                    }
-                }
-
-
+                
                 var closest = this.closestPointOnTriangle(relativePos, a, b, c);
                 var distSq = closest.subtract(relativePos).magnitudeSquared();
                 if (distSq < minDistanceSquared) {
@@ -409,7 +408,8 @@ const CollisionDetector = class {
         }.bind(this);
 
         var t = 1;
-        for (var i = 0; i < this.binarySearchDepth; i++) {
+        var depth = poly.isConvex ? this.binarySearchDepth : this.concavePolyhedronBinarySearchDepth;
+        for (var i = 0; i < depth; i++) {
             t = minT + (maxT - minT) * 0.333333;
             var result = binarySearch(t);
             if (result > 0) {
@@ -527,59 +527,7 @@ const CollisionDetector = class {
 
         return Math.max(0, tEnter); // Return the time of impact, or 0 if they are already intersecting
     }
-    // timeOfImpactAABBAABB(aabb1, vel1, aabb2, vel2) {
-    //     let collisionStart = 0;
-    //     let collisionEnd = Infinity;
-
-    //     // Check each axis (x, y, z)
-    //     for (let axis of ['x', 'y', 'z']) {
-    //         const v = vel1[axis] - vel2[axis];
-    //         const a1min = aabb1.min[axis];
-    //         const a1max = aabb1.max[axis];
-    //         const a2min = aabb2.min[axis];
-    //         const a2max = aabb2.max[axis];
-
-    //         let axisStart, axisEnd;
-
-    //         if (v === 0) {
-    //             // Check if the projections overlap at t=0
-    //             const overlap = a1max >= a2min && a2max >= a1min;
-    //             if (overlap) {
-    //                 axisStart = 0;
-    //                 axisEnd = Infinity;
-    //             } else {
-    //                 // No overlap on this axis at any time
-    //                 axisStart = Infinity;
-    //                 axisEnd = -Infinity;
-    //             }
-    //         } else {
-    //             const t1 = (a2min - a1max) / v;
-    //             const t2 = (a2max - a1min) / v;
-    //             const tEnter = Math.min(t1, t2);
-    //             const tExit = Math.max(t1, t2);
-
-    //             axisStart = Math.max(tEnter, 0);
-    //             axisEnd = tExit;
-
-    //             // Check if there is no overlap on this axis
-    //             if (axisStart > axisEnd) {
-    //                 axisStart = Infinity;
-    //                 axisEnd = -Infinity;
-    //             }
-    //         }
-
-    //         // Update the overall collision interval
-    //         collisionStart = Math.max(collisionStart, axisStart);
-    //         collisionEnd = Math.min(collisionEnd, axisEnd);
-    //     }
-
-    //     // Check if collision is possible
-    //     if (collisionStart <= collisionEnd && collisionStart !== Infinity) {
-    //         return [collisionStart, collisionEnd];
-    //     } else {
-    //         return [Infinity, Infinity];
-    //     }
-    // }
+    
     computeInterval(min1, max1, min2, max2, relVel) {
         if (relVel == 0) {
             if (max1 < min2 || max2 < min1) {

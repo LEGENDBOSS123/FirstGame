@@ -17,6 +17,7 @@ import TextParticle from "./3D/Graphics/Particle/TextParticle.mjs";
 import DistanceConstraint from "./3D/Physics/Collision/DistanceConstraint.mjs";
 import GameEngine from "./3D/GameEngine.mjs";
 import Coin from "./3D/Entity/Coin.mjs";
+import Sphere from "./3D/Physics/Shapes/Sphere.mjs";
 
 var stats = new Stats();
 var stats2 = new Stats();
@@ -121,6 +122,8 @@ var player = new Player({
     graphicsEngine: gameEngine.graphicsEngine
 });
 
+
+
 player.setMeshAndAddToScene({}, gameEngine);
 gameEngine.entitySystem.register(player);
 player.addToWorld(gameEngine.world);
@@ -198,14 +201,14 @@ const coinCounter = createCoinDisplay("C", 0);
 
 
 
-var map = await gameEngine.loadMap("map.glb", {
+var map = await gameEngine.loadMap("polytest.glb", {
     "Coin": Coin
 });
 for (const obj of map.objects) {
     gameEngine.world.addComposite(obj);
     obj.addToScene(gameEngine);
     if (obj.name.toLowerCase().includes("start")) {
-        player.setStartPoint(obj.global.body.position);
+        player.setStartPoint(obj.global.body.position, true);
         player.respawn();
     }
     if (obj.name.toLowerCase().includes("start") || obj.name.toLowerCase().includes("checkpoint")) {

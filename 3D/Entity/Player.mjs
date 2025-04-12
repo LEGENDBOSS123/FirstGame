@@ -141,9 +141,9 @@ var Player = class extends Entity {
         this.keysVector = new Vector3();
     }
 
-    setStartPoint(v) {
+    setStartPoint(v, override = false) {
         var startPoint = localStorage["playerStartPoint"];
-        if (!startPoint) {
+        if (!startPoint || override) {
             localStorage["playerStartPoint"] = JSON.stringify(v.toJSON());
         }
         else {
@@ -167,9 +167,7 @@ var Player = class extends Entity {
 
     addToWorld(world) {
         world.addComposite(this.composite);
-        world.addComposite(this.sphere);
-        world.addComposite(this.sphere2);
-        world.addComposite(this.sphere3);
+       
         this.updateShapeID();
     }
 
