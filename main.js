@@ -16,7 +16,6 @@ import Particle from "./3D/Graphics/Particle/Particle.mjs";
 import TextParticle from "./3D/Graphics/Particle/TextParticle.mjs";
 import DistanceConstraint from "./3D/Physics/Collision/DistanceConstraint.mjs";
 import GameEngine from "./3D/GameEngine.mjs";
-import Coin from "./3D/Entity/Coin.mjs";
 import Sphere from "./3D/Physics/Shapes/Sphere.mjs";
 
 var stats = new Stats();
@@ -51,8 +50,8 @@ var gameEngine = new GameEngine(
             canvas: document.getElementById("canvas")
         },
         gameCamera: {
-            pullback: 5,
-            maxPullback: 40
+            pullback: 0,
+            maxPullback: 10
         },
         cameraControls: {
             speed: 1,
@@ -111,9 +110,11 @@ gameEngine.world.setIterations(16);
 
 var gravity = -0.4;
 var player = new Player({
-    size: 1,
+    radius: 0.5,
+    height: 4,
+    tiltable: false,
     moveStrength: 0.5,
-    airMoveStrength: 0.2,
+    airMoveStrength: 0.1,
     moveSpeed: 0.2,
     jumpSpeed: 0.4,
     gravity: new Vector3(0, gravity, 0),
@@ -127,95 +128,49 @@ var player = new Player({
 player.setMeshAndAddToScene({}, gameEngine);
 gameEngine.entitySystem.register(player);
 player.addToWorld(gameEngine.world);
-function createCoinDisplay(coinSymbol = "$", initialCoinCount = 0) {
-    const coinContainer = document.createElement('div');
-    coinContainer.style.position = 'fixed';
-    coinContainer.style.top = '40px';
-    coinContainer.style.right = '40px';
-    coinContainer.style.backgroundColor = '#222';
-    coinContainer.style.border = '1px solid #555';
-    coinContainer.style.borderRadius = '10px';
-    coinContainer.style.padding = '16px 24px';
-    coinContainer.style.display = 'flex';
-    coinContainer.style.alignItems = 'center';
-    coinContainer.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.3)';
-    coinContainer.style.zIndex = '1000';
-    coinContainer.style.fontFamily = 'Arial, sans-serif';
-    coinContainer.style.fontSize = '32px';
-    coinContainer.style.color = '#eee';
-    coinContainer.style.transition = 'transform 0.15s ease-in-out';
-
-    const symbolSpan = document.createElement('span');
-    symbolSpan.textContent = coinSymbol;
-    symbolSpan.style.marginRight = '16px';
-    symbolSpan.style.fontSize = '2.4em';
-    symbolSpan.style.color = '#ffc107';
-
-    const countSpan = document.createElement('span');
-    countSpan.textContent = initialCoinCount;
-    countSpan.style.fontWeight = 'bold';
-    countSpan.style.transition = 'opacity 0.15s ease-in-out, transform 0.15s ease-in-out';
-
-    coinContainer.appendChild(symbolSpan);
-    coinContainer.appendChild(countSpan);
-
-    document.body.appendChild(coinContainer);
-
-    let currentCount = initialCoinCount; // Keep track of the count
-
-    return {
-        updateCount: function (newCount) {
-            if (typeof newCount !== 'number') {
-                console.error('updateCount: newCount must be a number');
-                return; // Exit if newCount is not a number
-            }
-
-            if (newCount === currentCount) return; // Don't animate if the count is the same
-
-            currentCount = newCount; // Update the currentCount
-
-            // Small scale animation for the container
-            coinContainer.style.transform = 'scale(1.1)';
-            setTimeout(() => {
-                coinContainer.style.transform = 'scale(1)';
-            }, 150);
-
-            // Fade out and scale down the old count
-            countSpan.style.opacity = '0.5';
-            countSpan.style.transform = 'scale(0.9)';
-
-            // Update the count after a short delay and animate it in
-            setTimeout(() => {
-                countSpan.textContent = newCount;
-                countSpan.style.opacity = '1';
-                countSpan.style.transform = 'scale(1)';
-            }, 150);
-        },
-        getCount: function () {
-            return currentCount;
-        }
-    };
-}
-
-const coinCounter = createCoinDisplay("C", 0);
 
 
 
-var map = await gameEngine.loadMap("polytest2.glb", {
-    "Coin": Coin
-});
+
+var map = await gameEngine.loadMap("map.glb", {});
+
 for (const obj of map.objects) {
     gameEngine.world.addComposite(obj);
     obj.addToScene(gameEngine);
+    if (obj.name.toLowerCase().includes("death")) {
+        obj.addEventListener("collision", function (contact) {
+            var player = null;
+            if(gameEngine.entitySystem.getEntityFromShape(contact.body1) instanceof Player){
+                player = gameEngine.entitySystem.getEntityFromShape(contact.body1);
+            }
+            else if(gameEngine.entitySystem.getEntityFromShape(contact.body2) instanceof Player){
+                player = gameEngine.entitySystem.getEntityFromShape(contact.body2);
+            }
+
+            if(!player){
+                return;
+            }
+            player.respawn();
+        })
+    }
     if (obj.name.toLowerCase().includes("start")) {
-        player.setStartPoint(obj.global.body.position, true);
+        player.setStartPoint(obj.global.body.position);
         player.respawn();
     }
     if (obj.name.toLowerCase().includes("start") || obj.name.toLowerCase().includes("checkpoint")) {
         obj.addEventListener("collision", function (contact) {
-            if (contact.body1.maxParent == player.getMainShape().maxParent || contact.body2.maxParent == player.getMainShape().maxParent) {
-                player.setSpawnPoint(player.getMainShape().global.body.position);
+            var player = null;
+            if(gameEngine.entitySystem.getEntityFromShape(contact.body1) instanceof Player){
+                player = gameEngine.entitySystem.getEntityFromShape(contact.body1);
             }
+            else if(gameEngine.entitySystem.getEntityFromShape(contact.body2) instanceof Player){
+                player = gameEngine.entitySystem.getEntityFromShape(contact.body2);
+            }
+
+            if(!player){
+                return;
+            }
+            player.setSpawnPoint(player.getMainShape().global.body.position, true);
         })
     }
 }
@@ -246,10 +201,9 @@ function render() {
         gameEngine.stepWorld();
         stats2.end();
     }
-    coinCounter.updateCount(player.money);
     gameEngine.updateEntities();
     gameEngine.updateGraphicsEngine();
-    gameEngine.updateGameCamera(Vector3.from(player.getMainShape()?.mesh?.mesh?.position));
+    gameEngine.updateGameCamera(Vector3.from(player.getMainShape()?.mesh?.mesh?.position ?? player.getMainShape().global.body.position.copy()));
     gameEngine.particleSystem.update();
     gameEngine.graphicsEngine.render();
     gameEngine.timer.step();

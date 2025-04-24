@@ -29,10 +29,8 @@ var MeshLinker = class {
         for (var meshID in this.meshes) {
             var mesh = this.meshes[meshID];
             if (!world.getByID(meshID) || !previousWorld.all[meshID]) {
-                mesh.mesh.visible = false;
                 continue;
             }
-            mesh.mesh.visible = true;
             var composite = world.getByID(meshID);
             var previousComposite = previousWorld.all[meshID];
             composite.lerpMesh(previousComposite, lerpAmount, previousWorld);
