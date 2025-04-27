@@ -51,7 +51,7 @@ var gameEngine = new GameEngine(
         },
         gameCamera: {
             pullback: 0,
-            maxPullback: 10
+            maxPullback: 0
         },
         cameraControls: {
             speed: 1,
@@ -136,7 +136,7 @@ var map = await gameEngine.loadMap("map.glb", {});
 
 for (const obj of map.objects) {
     gameEngine.world.addComposite(obj);
-    obj.addToScene(gameEngine);
+    //obj.addToScene(gameEngine);
     if (obj.name.toLowerCase().includes("death")) {
         obj.addEventListener("collision", function (contact) {
             var player = null;
@@ -175,13 +175,14 @@ for (const obj of map.objects) {
     }
 }
 for (var mesh of map.meshes) {
-    gameEngine.graphicsEngine.addToScene(mesh);
+    //gameEngine.graphicsEngine.addToScene(mesh);
 }
 for (var entity of map.entities) {
     entity.setMeshAndAddToScene({}, gameEngine);
     gameEngine.entitySystem.register(entity);
     entity.addToWorld(gameEngine.world);
 }
+gameEngine.graphicsEngine.addToScene(map.gltf.scene)
 
 
 

@@ -178,12 +178,12 @@ const Polyhedron = class extends Composite {
 
         var positions = geometry.attributes.position.array;
         var numVertices = positions.length / 3;
-
+        var scale = Vector3.from(mesh.getWorldScale(new gameEngine.graphicsEngine.THREE.Vector3()));
         for (let i = 0; i < numVertices; i++) {
             var x = positions[i * 3];
             var y = positions[i * 3 + 1];
             var z = positions[i * 3 + 2];
-            vertices.push(new Vector3(x, y, z).multiply(new Vector3(mesh.scale.x, mesh.scale.y, mesh.scale.z).map(Math.abs)));
+            vertices.push(new Vector3(x, y, z).multiply(scale.map(Math.abs)));
         }
 
 

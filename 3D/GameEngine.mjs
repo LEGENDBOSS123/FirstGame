@@ -10,8 +10,8 @@ import Polyhedron from "./Physics/Shapes/Polyhedron.mjs";
 import Sphere from "./Physics/Shapes/Sphere.mjs";
 import SimpleCameraControls from "./SimpleCameraControls.mjs";
 
-const GameEngine = class{
-    constructor(options){
+const GameEngine = class {
+    constructor(options) {
         this.entitySystem = new EntitySystem(options?.graphicsEngine);
         this.graphicsEngine = new GraphicsEngine(options?.graphicsEngine);
         this.timer = new Timer(options?.timer);
@@ -31,42 +31,44 @@ const GameEngine = class{
         this.fpsStepper = new Timer.Interval(1000 / this.fps);
     }
 
-    stepWorld(){
+    stepWorld() {
         this.previousWorld = this.world.toJSON();
         this.world.step();
     }
 
-    updateGameCamera(position){
+    updateGameCamera(position) {
         this.gameCamera.update(position, this.graphicsEngine);
     }
-    updateGraphicsEngine(){
+    updateGraphicsEngine() {
         this.graphicsEngine.update(this.previousWorld || this.world, this.world, this.fpsStepper.getLerpAmount());
     }
-    updateEntitiesStep(){
+    updateEntitiesStep() {
         this.entitySystem.updateStep(this);
     }
-    updateEntities(){
+    updateEntities() {
         this.entitySystem.update(this);
     }
 
     async loadMap(url, entities = {}) {
-        const map = { objects: [], meshes: [], entities: []};
+        const map = { objects: [], meshes: [], entities: [], gltf: null};
         const traverse = function (child, colliderParsed) {
             if (child.isMesh) {
                 child.castShadow = true;
                 child.receiveShadow = true;
                 child.material.depthWrite = true;
+                child.geometry.computeVertexNormals();
+                child.material.side = this.graphicsEngine.THREE.FrontSide;
                 if (!colliderParsed) {
                     var invalidShape = false;
                     var shape = Composite;
                     var chosen = false;
-                    for(var name in entities){
-                        if(child.name.startsWith(name)){
+                    for (var name in entities) {
+                        if (child.name.startsWith(name)) {
                             shape = entities[name];
                             chosen = true;
                         }
                     }
-                    if(!chosen){
+                    if (!chosen) {
                         if (child.name.startsWith("Box")) {
                             shape = Box;
                         }
@@ -83,13 +85,13 @@ const GameEngine = class{
                     }
 
                     if (!invalidShape) {
-                        if(chosen){
+                        if (chosen) {
                             var obj = new shape({
                                 name: child.name
                             }).fromMesh(child, this);
                             map.entities.push(obj);
                         }
-                        else{
+                        else {
                             var obj = new shape({
                                 name: child.name
                             }).fromMesh(child, this);
@@ -103,11 +105,16 @@ const GameEngine = class{
                     colliderParsed = true;
                 }
             }
+            else if (child.isLight) {
+                child.castShadow = true;
+                map.meshes.push(child);
+            }
             for (const c of child.children) {
                 traverse(c, colliderParsed);
             }
         }.bind(this);
         var gltf = await this.graphicsEngine.load(url);
+        map.gltf = gltf;
         traverse(gltf.scene);
         return map;
     }

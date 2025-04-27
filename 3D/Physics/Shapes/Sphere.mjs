@@ -53,7 +53,8 @@ const Sphere = class extends Composite {
     }
 
     fromMesh(mesh, gameEngine) {
-        this.radius = mesh.scale.x;
+        var scale = Vector3.from(mesh.getWorldScale(new gameEngine.graphicsEngine.THREE.Vector3()));
+        this.radius = scale.x;
 
         var pos = Vector3.from(mesh.getWorldPosition(new gameEngine.graphicsEngine.THREE.Vector3()));
         var quat = Quaternion.from(mesh.getWorldQuaternion(new gameEngine.graphicsEngine.THREE.Quaternion()));

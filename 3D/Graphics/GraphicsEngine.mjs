@@ -4,10 +4,7 @@ import { N8AOPostPass } from './N8AO.mjs';
 import AutoTextureLoader from "./AutoTextureLoader.mjs";
 import MeshLinker from "./MeshLinker.mjs";
 import Vector3 from "../Physics/Math3D/Vector3.mjs";
-import Composite from "../Physics/Shapes/Composite.mjs";
-import Box from "../Physics/Shapes/Box.mjs";
-import Sphere from "../Physics/Shapes/Sphere.mjs";
-import Polyhedron from "../Physics/Shapes/Polyhedron.mjs";
+
 var GraphicsEngine = class {
     constructor(options) {
         this.THREE = THREE;
@@ -15,17 +12,18 @@ var GraphicsEngine = class {
         this.document = options?.document ?? document;
 
         this.container = options?.canvas?.parent ?? this.document.body;
-        this.renderer = new THREE.WebGLRenderer({
+        this.renderer = new this.THREE.WebGLRenderer({
             canvas: options?.canvas ?? null
         });
 
         this.canvas = this.renderer.domElement;
 
-        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        this.renderer.toneMapping = this.THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 1;
+        this.renderer.outputEncoding = this.THREE.sRGBEncoding;
         this.renderer.physicallyCorrectLights = true;
         this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.renderer.shadowMap.type = this.THREE.PCFSoftShadowMap;
         this.renderer.shadowMap.autoUpdate = true;
 
         this.screenWidth = this.container.clientWidth;
@@ -40,10 +38,10 @@ var GraphicsEngine = class {
 
         this.meshLinker = new MeshLinker();
 
-        this.scene = new THREE.Scene();
+        this.scene = new this.THREE.Scene();
         this.renderDistance = options?.renderDistance ?? 4096;
-        this.camera = new THREE.PerspectiveCamera(options?.camera?.fov ?? 90, this.aspectRatio(), options?.camera?.near ?? 0.1, options?.cameraFar ?? options?.camera?.far ?? this.renderDistance);
-        this.fog = new THREE.Fog(0xFFFFFF);
+        this.camera = new this.THREE.PerspectiveCamera(options?.camera?.fov ?? 90, this.aspectRatio(), options?.camera?.near ?? 0.1, options?.cameraFar ?? options?.camera?.far ?? this.renderDistance);
+        this.fog = new this.THREE.Fog(0xFFFFFF);
         this.fogRatio = options?.fogRatio ?? 0.9;
         this.scene.fog = this.fog;
         this.scene.add(this.camera);
@@ -70,7 +68,7 @@ var GraphicsEngine = class {
         this.startTime = null;
 
         this.mousePosition = new Vector3(0, 0, 0);
-        this.raycaster = new THREE.Raycaster();
+        this.raycaster = new this.THREE.Raycaster();
 
         this.window.addEventListener("mousemove", function (event) {
             this.mousePosition.x = (event.clientX / this.screenWidth) * 2 - 1;
@@ -163,7 +161,7 @@ var GraphicsEngine = class {
 
     setBackgroundImage(url, setBackground = true, setEnvironment = false) {
         this.textureLoader.load(url).then(function (texture, extension) {
-            var pmremGenerator = new THREE.PMREMGenerator(this.renderer);
+            var pmremGenerator = new this.THREE.PMREMGenerator(this.renderer);
             pmremGenerator.compileEquirectangularShader();
             texture = pmremGenerator.fromEquirectangular(texture).texture;
             pmremGenerator.dispose();
@@ -183,13 +181,13 @@ var GraphicsEngine = class {
 
     setupLights() {
 
-        this.ambientLight = new THREE.AmbientLight(0xbbbbbb, 2);
+        this.ambientLight = new this.THREE.AmbientLight(0xbbbbbb, 2);
         this.scene.add(this.ambientLight);
 
         var range = 256;
 
-        this.sunlight = new THREE.DirectionalLight(0xffffff, 1);
-        this.sunlight.direction = new THREE.Vector3(0, -1, 0);
+        this.sunlight = new this.THREE.DirectionalLight(0xffffff, 1);
+        this.sunlight.direction = new this.THREE.Vector3(0, -1, 0);
         this.sunlight.castShadow = true;
         this.sunlight.shadow.mapSize.width = 4096;
         this.sunlight.shadow.mapSize.height = 4096;
@@ -208,7 +206,7 @@ var GraphicsEngine = class {
     }
 
     setSunlightDirection(direction) {
-        this.sunlight.direction = new THREE.Vector3(direction.x, direction.y, direction.z).normalize();
+        this.sunlight.direction = new this.THREE.Vector3(direction.x, direction.y, direction.z).normalize();
     }
 
     setSunlightBrightness(brightness) {

@@ -54,8 +54,11 @@ var Player = class extends Entity {
         this.composite.syncAll();
         this.composite.setRestitution(0);
         this.composite.setFriction(0);
-        this.spheres[0].setRestitution(0);
-        this.spheres[0].setFriction(0);
+        for (const sphere of this.spheres) {
+            sphere.setRestitution(0);
+            sphere.setFriction(0);
+        }
+
         this.spawnPoint = this.spheres[0].global.body.position.copy();
         this.canJump = false;
         this.touchingGround = false;
@@ -105,7 +108,7 @@ var Player = class extends Entity {
             if (this.touchingGround && this.tiltable) {
                 velXZ = velXZ2;
             }
-            this.composite.global.body.rotation = Quaternion.lookAt(velXZ.normalize(), new Vector3(0, 1, 0));
+            //this.composite.global.body.rotation = Quaternion.lookAt(velXZ.normalize(), new Vector3(0, 1, 0));
         }.bind(this);
 
 

@@ -112,9 +112,10 @@ const Box = class extends Composite {
 
     fromMesh(mesh, gameEngine) {
         var cubeSize = [Math.abs(mesh.geometry.attributes.position.array[0]), Math.abs(mesh.geometry.attributes.position.array[1]), Math.abs(mesh.geometry.attributes.position.array[2])];
-        this.width = Math.abs(mesh.scale.x) * 2 * cubeSize[0];
-        this.height = Math.abs(mesh.scale.y) * 2 * cubeSize[1];
-        this.depth = Math.abs(mesh.scale.z) * 2 * cubeSize[2];
+        var scale = Vector3.from(mesh.getWorldScale(new gameEngine.graphicsEngine.THREE.Vector3()));
+        this.width = Math.abs(scale.x) * 2 * cubeSize[0];
+        this.height = Math.abs(scale.y) * 2 * cubeSize[1];
+        this.depth = Math.abs(scale.z) * 2 * cubeSize[2];
         
         var pos = Vector3.from(mesh.getWorldPosition(new gameEngine.graphicsEngine.THREE.Vector3()));
         var quat = Quaternion.from(mesh.getWorldQuaternion(new gameEngine.graphicsEngine.THREE.Quaternion()));

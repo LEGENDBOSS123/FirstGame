@@ -632,10 +632,9 @@ const CollisionDetector = class {
         }
 
 
-        const closestPoint2 = box.global.body.rotation.multiplyVector3(closestPoint).addInPlace(boxPos);
         const contact = new CollisionContact();
         contact.point = box.translateLocalToWorld(closestPoint);
-        contact.normal = spherePos.subtract(closestPoint2).normalizeInPlace();
+        contact.normal = spherePos.subtract(contact.point).normalizeInPlace();
         if (inside) {
             contact.normal.scaleInPlace(-1);
         }
