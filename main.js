@@ -71,7 +71,8 @@ var gameEngine = new GameEngine(
             document: document,
             renderDomElement: document.body
         },
-        particleSystem: {}
+        particleSystem: {},
+        fps: 20
 
     }
 );

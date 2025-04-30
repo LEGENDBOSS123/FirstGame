@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { EffectComposer, RenderPass, ShaderPass, CopyPass, EffectPass, DepthEffect } from "postprocessing";
+import { EffectComposer, RenderPass, BloomEffect, CopyPass, EffectPass, ToneMappingEffect } from "postprocessing";
 import { N8AOPostPass } from './N8AO.mjs';
 import AutoTextureLoader from "./AutoTextureLoader.mjs";
 import MeshLinker from "./MeshLinker.mjs";
@@ -57,6 +57,26 @@ var GraphicsEngine = class {
         this.n8aoPass.configuration.aoRadius = 0.5;
         this.n8aoPass.renderToScreen = false;
         this.composer.addPass(this.n8aoPass);
+
+        this.bloomEffect = new BloomEffect({
+            intensity: 1.5,
+            radius: 0.5,
+            threshold: 1.5
+        })
+
+        this.bloomPass = new EffectPass(this.camera, this.bloomEffect);
+        this.composer.addPass(this.bloomPass);
+
+
+        // this.toneMappingEffect = new ToneMappingEffect({
+        //     toneMapping: this.THREE.ACESFilmicToneMapping,
+        //     exposure: 1.5
+        // });
+
+        // this.toneMappingPass = new EffectPass(this.camera, this.toneMappingEffect);
+        // this.composer.addPass(this.toneMappingPass);
+
+
         this.lights = [];
         this.setupLights();
 
@@ -237,6 +257,14 @@ var GraphicsEngine = class {
 
     disableAO() {
         this.n8aoPass.enabled = false;
+    }
+
+    enableBloom(){
+        this.bloomPass.enabled = true;
+    }
+
+    disableBloom(){
+        this.bloomPass.enabled = false;
     }
 
     disableShadows() {

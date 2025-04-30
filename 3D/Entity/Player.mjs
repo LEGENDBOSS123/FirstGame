@@ -108,7 +108,7 @@ var Player = class extends Entity {
             if (this.touchingGround && this.tiltable) {
                 velXZ = velXZ2;
             }
-            //this.composite.global.body.rotation = Quaternion.lookAt(velXZ.normalize(), new Vector3(0, 1, 0));
+            this.composite.global.body.rotation = Quaternion.lookAt(velXZ.normalize(), new Vector3(0, 1, 0));
         }.bind(this);
 
 
@@ -219,9 +219,13 @@ var Player = class extends Entity {
         velHorizontal.y = 0;
 
         var vec = this.getKeysVector();
+        // if(vec.magnitudeSquared() == 0){
+        //     return;
+        // }
         var vecHorizontal = vec.copy();
         vecHorizontal.y = 0;
         vecHorizontal.normalizeInPlace();
+        
 
         var desiredVelocity = vecHorizontal.scale(this.moveSpeed);
         if (this.touchingGround) {

@@ -104,6 +104,10 @@ const World = class {
         }
         for (var iter = 0; iter < this.substeps; iter++) {
             for (const comp of this.composites) {
+                if (comp.isMaxParent()) {
+                    comp.syncAll();
+                    comp.updateSleepAll();
+                }
                 if (comp.sleeping) {
                     continue;
                 }
@@ -117,7 +121,6 @@ const World = class {
             
             for (const comp of this.composites) {
                 if (comp.isMaxParent()) {
-                    comp.updateSleepAll();
                     comp.updateAfterCollisionAll();
                 }
                 comp.dispatchEvent("postSubstep");

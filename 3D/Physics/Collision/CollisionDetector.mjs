@@ -337,10 +337,10 @@ const CollisionDetector = class {
         var minT = 0;
         var maxT = 1;
         var timeOfImpact = this.timeOfImpactAABBAABB(sphere.global.hitbox.translate(sphere.global.body.getVelocity().scale(-1)), sphere.global.body.getVelocity().scale(1), poly.global.hitbox.translate(poly.global.body.getVelocity().scale(-1)), poly.global.body.getVelocity().scale(1));
-        if (timeOfImpact != null ) {
+        if (timeOfImpact != null) {
             timeOfImpact[0] = Math.min(1, Math.max(0, timeOfImpact[0]));
             timeOfImpact[1] = Math.min(1, Math.max(0, timeOfImpact[1]));
-            if(timeOfImpact[0] < 0.001){
+            if (timeOfImpact[0] < 0.001) {
                 timeOfImpact[1] = 1;
             }
             minT = timeOfImpact[0];
@@ -360,7 +360,7 @@ const CollisionDetector = class {
             minDistanceSquared = Infinity;
             inside = 0;
             isInside = poly.isConvex;
-            
+
             for (var face = 0; face < poly.faces.length; face++) {
                 var a = poly.localVertices[poly.faces[face][0]];
                 var b = poly.localVertices[poly.faces[face][1]];
@@ -386,8 +386,8 @@ const CollisionDetector = class {
                     continue;
                 }
 
-                
-                
+
+
                 var closest = this.closestPointOnTriangle(relativePos, a, b, c);
                 var distSq = closest.subtract(relativePos).magnitudeSquared();
                 if (distSq < minDistanceSquared) {
@@ -447,88 +447,7 @@ const CollisionDetector = class {
         return true;
 
     }
-    timeOfImpactAABBAABB3D(aabb1, vel1, aabb2, vel2) {
-        // aabb1 and aabb2 are objects with properties: { min: {x, y, z}, max: {x, y, z} }
-        // vel1 and vel2 are objects with properties: { x, y, z }
 
-        const relVel = {
-            x: vel1.x - vel2.x,
-            y: vel1.y - vel2.y,
-            z: vel1.z - vel2.z,
-        };
-
-        let tEnterX = -Infinity;
-        let tExitX = Infinity;
-        let tEnterY = -Infinity;
-        let tExitY = Infinity;
-        let tEnterZ = -Infinity;
-        let tExitZ = Infinity;
-
-        // X-axis intersection
-        if (relVel.x === 0) {
-            if (aabb1.max.x < aabb2.min.x || aabb1.min.x > aabb2.max.x) {
-                return Infinity; // No intersection
-            }
-            // else, they are already intersecting or will always intersect.
-            tEnterX = -Infinity;
-            tExitX = Infinity;
-        } else {
-            if (relVel.x > 0) {
-                tEnterX = (aabb2.min.x - aabb1.max.x) / relVel.x;
-                tExitX = (aabb2.max.x - aabb1.min.x) / relVel.x;
-            } else {
-                tEnterX = (aabb2.max.x - aabb1.min.x) / relVel.x;
-                tExitX = (aabb2.min.x - aabb1.max.x) / relVel.x;
-            }
-        }
-
-        // Y-axis intersection
-        if (relVel.y === 0) {
-            if (aabb1.max.y < aabb2.min.y || aabb1.min.y > aabb2.max.y) {
-                return Infinity; // No intersection
-            }
-            // else, they are already intersecting or will always intersect.
-            tEnterY = -Infinity;
-            tExitY = Infinity;
-        } else {
-            if (relVel.y > 0) {
-                tEnterY = (aabb2.min.y - aabb1.max.y) / relVel.y;
-                tExitY = (aabb2.max.y - aabb1.min.y) / relVel.y;
-            } else {
-                tEnterY = (aabb2.max.y - aabb1.min.y) / relVel.y;
-                tExitY = (aabb2.min.y - aabb1.max.y) / relVel.y;
-            }
-        }
-
-        // Z-axis intersection
-        if (relVel.z === 0) {
-            if (aabb1.max.z < aabb2.min.z || aabb1.min.z > aabb2.max.z) {
-                return Infinity; // No intersection
-            }
-            // else, they are already intersecting or will always intersect.
-            tEnterZ = -Infinity;
-            tExitZ = Infinity;
-        } else {
-            if (relVel.z > 0) {
-                tEnterZ = (aabb2.min.z - aabb1.max.z) / relVel.z;
-                tExitZ = (aabb2.max.z - aabb1.min.z) / relVel.z;
-            } else {
-                tEnterZ = (aabb2.max.z - aabb1.min.z) / relVel.z;
-                tExitZ = (aabb2.min.z - aabb1.max.z) / relVel.z;
-            }
-        }
-
-        // Find the earliest time of entry and latest time of exit
-        const tEnter = Math.max(tEnterX, tEnterY, tEnterZ);
-        const tExit = Math.min(tExitX, tExitY, tExitZ);
-
-        if (tEnter > tExit || tExit < 0) {
-            return Infinity; // No intersection
-        }
-
-        return Math.max(0, tEnter); // Return the time of impact, or 0 if they are already intersecting
-    }
-    
     computeInterval(min1, max1, min2, max2, relVel) {
         if (relVel == 0) {
             if (max1 < min2 || max2 < min1) {
@@ -572,6 +491,7 @@ const CollisionDetector = class {
         const collisionStart = tEntry < 0 ? 0 : tEntry;
         return [collisionStart, tExit];
     }
+  
 
     handleSphereBox(sphere, box) {
 
@@ -584,16 +504,15 @@ const CollisionDetector = class {
         var minT = 0;
         var maxT = 1;
         var timeOfImpact = this.timeOfImpactAABBAABB(sphere.global.hitbox.translate(sphere.global.body.getVelocity().scale(-1)), sphere.global.body.getVelocity().scale(1), box.global.hitbox.translate(box.global.body.getVelocity().scale(-1)), box.global.body.getVelocity().scale(1));
-        if (timeOfImpact != null ) {
+        if (timeOfImpact != null) {
             timeOfImpact[0] = Math.min(1, Math.max(0, timeOfImpact[0]));
             timeOfImpact[1] = Math.min(1, Math.max(0, timeOfImpact[1]));
-            if(timeOfImpact[0] < 0.001){
+            if (timeOfImpact[0] < 0.001) {
                 timeOfImpact[1] = 1;
             }
             minT = timeOfImpact[0];
             maxT = timeOfImpact[1];
         }
-
 
         var binarySearch = function (t) {
             spherePos = sphere.global.body.previousPosition.lerp(sphere.global.body.position, t);
@@ -619,7 +538,6 @@ const CollisionDetector = class {
         for (var i = 0; i < this.binarySearchDepth; i++) {
             t = minT + (maxT - minT) * 0.333333;
             var result = binarySearch(t);
-
             if (result > 0) {
                 minT = t;
             } else {
@@ -630,7 +548,6 @@ const CollisionDetector = class {
         if (binarySearch(t) > 0) {
             return false;
         }
-
 
         const contact = new CollisionContact();
         contact.point = box.translateLocalToWorld(closestPoint);
@@ -643,6 +560,7 @@ const CollisionDetector = class {
         contact.body2 = box;
         contact.point = sphere.global.body.position.subtract(contact.normal.scale(sphere.radius));
         this.addContact(contact);
+
         return true;
 
 
@@ -653,10 +571,10 @@ const CollisionDetector = class {
         var minT = 0;
         var maxT = 1;
         var timeOfImpact = this.timeOfImpactAABBAABB(sphere1.global.hitbox.translate(sphere1.global.body.getVelocity().scale(-1)), sphere1.global.body.getVelocity().scale(1), sphere2.global.hitbox.translate(sphere2.global.body.getVelocity().scale(-1)), sphere2.global.body.getVelocity().scale(1));
-        if (timeOfImpact != null ) {
+        if (timeOfImpact != null) {
             timeOfImpact[0] = Math.min(1, Math.max(0, timeOfImpact[0]));
             timeOfImpact[1] = Math.min(1, Math.max(0, timeOfImpact[1]));
-            if(timeOfImpact[0] < 0.001){
+            if (timeOfImpact[0] < 0.001) {
                 timeOfImpact[1] = 1;
             }
             minT = timeOfImpact[0];
@@ -737,10 +655,10 @@ const CollisionDetector = class {
         var minT = 0;
         var maxT = 1;
         var timeOfImpact = this.timeOfImpactAABBAABB(sphere1.global.hitbox.translate(sphere1.global.body.getVelocity().scale(-1)), sphere1.global.body.getVelocity().scale(1), terrain1.global.hitbox.translate(terrain1.global.body.getVelocity().scale(-1)), terrain1.global.body.getVelocity().scale(1));
-        if (timeOfImpact != null ) {
+        if (timeOfImpact != null) {
             timeOfImpact[0] = Math.min(1, Math.max(0, timeOfImpact[0]));
             timeOfImpact[1] = Math.min(1, Math.max(0, timeOfImpact[1]));
-            if(timeOfImpact[0] < 0.001){
+            if (timeOfImpact[0] < 0.001) {
                 timeOfImpact[1] = 1;
             }
             minT = timeOfImpact[0];
