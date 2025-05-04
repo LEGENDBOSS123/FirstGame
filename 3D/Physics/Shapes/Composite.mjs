@@ -496,7 +496,6 @@ const Composite = class extends WorldObject {
         this.mesh.mesh.position.set(...this.global.body.position.lerp(last.global.body.position, 1 - lerp));
         const quat = this.global.body.rotation.slerp(last.global.body.rotation, 1 - lerp);
         this.mesh.mesh.quaternion.set(...[quat.x, quat.y, quat.z, quat.w]);
-        this.mesh.mesh.visible = true;
     }
 
     toJSON() {

@@ -13,7 +13,7 @@ const CollisionDetector = class {
         this.world = options?.world ?? null;
         this.contacts = options?.contacts ?? [];
         this.handlers = {};
-        this.binarySearchDepth = options?.binarySearchDepth ?? 8;
+        this.binarySearchDepth = options?.binarySearchDepth ?? 4;
         this.iterations = options?.iterations ?? 4;
         this.concavePolyhedronBinarySearchDepth = options?.concavePolyhedronBinarySearchDepth ?? 1;
         this.initHandlers();

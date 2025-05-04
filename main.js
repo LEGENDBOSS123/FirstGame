@@ -83,7 +83,6 @@ gameEngine.graphicsEngine.ambientLight.intensity = 1;
 gameEngine.graphicsEngine.setBackgroundImage("autumn_field_puresky_8k.hdr", true, false);
 gameEngine.graphicsEngine.setSunlightDirection(new Vector3(-2, -8, -5));
 gameEngine.graphicsEngine.setSunlightBrightness(1);
-gameEngine.graphicsEngine.disableAO();
 gameEngine.graphicsEngine.renderDistance = 1600;
 gameEngine.graphicsEngine.cameraFar = 2000;
 
@@ -133,11 +132,10 @@ player.addToWorld(gameEngine.world);
 
 
 
-var map = await gameEngine.loadMap("map.glb", {});
+var map = await gameEngine.loadMap("abandoned_city.glb", {});
 
 for (const obj of map.objects) {
     gameEngine.world.addComposite(obj);
-    //obj.addToScene(gameEngine);
     if (obj.name.toLowerCase().includes("death")) {
         obj.addEventListener("collision", function (contact) {
             var player = null;

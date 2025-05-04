@@ -56,6 +56,7 @@ var GraphicsEngine = class {
         this.n8aoPass = new N8AOPostPass(this.scene, this.camera, this.screenWidth, this.screenHeight);
         this.n8aoPass.configuration.aoRadius = 0.5;
         this.n8aoPass.renderToScreen = false;
+        this.n8aoPass.enabled = false;
         this.composer.addPass(this.n8aoPass);
 
         this.bloomEffect = new BloomEffect({
@@ -63,18 +64,9 @@ var GraphicsEngine = class {
             radius: 0.5,
             threshold: 1.5
         })
-
         this.bloomPass = new EffectPass(this.camera, this.bloomEffect);
+        this.bloomPass.enabled = false;
         this.composer.addPass(this.bloomPass);
-
-
-        // this.toneMappingEffect = new ToneMappingEffect({
-        //     toneMapping: this.THREE.ACESFilmicToneMapping,
-        //     exposure: 1.5
-        // });
-
-        // this.toneMappingPass = new EffectPass(this.camera, this.toneMappingEffect);
-        // this.composer.addPass(this.toneMappingPass);
 
 
         this.lights = [];

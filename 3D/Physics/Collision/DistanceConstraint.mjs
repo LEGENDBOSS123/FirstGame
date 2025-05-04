@@ -59,7 +59,6 @@ const DistanceConstraint = class extends Constraint {
         ];
         this.mesh.mesh.geometry.setFromPoints(lerped);
         this.mesh.mesh.geometry.attributes.position.needsUpdate = true;
-        this.mesh.mesh.visible = true;
     }
 
     solve() {

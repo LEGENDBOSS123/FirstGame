@@ -27,7 +27,6 @@ var MeshLinker = class {
     }
     update(previousWorld, world, lerpAmount) {
         for (var meshID in this.meshes) {
-            var mesh = this.meshes[meshID];
             if (!world.getByID(meshID) || !previousWorld.all[meshID]) {
                 continue;
             }

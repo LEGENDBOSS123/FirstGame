@@ -57,7 +57,9 @@ const GameEngine = class {
                 child.receiveShadow = true;
                 child.material.depthWrite = true;
                 child.geometry.computeVertexNormals();
-                child.material.side = this.graphicsEngine.THREE.FrontSide;
+                if(child.userData?.invisible){
+                    child.visible = false;
+                }
                 if (!colliderParsed) {
                     var invalidShape = false;
                     var shape = Composite;
