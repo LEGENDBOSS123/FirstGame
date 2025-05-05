@@ -56,6 +56,7 @@ const GameEngine = class {
                 child.castShadow = true;
                 child.receiveShadow = true;
                 child.material.depthWrite = true;
+                child.material.side = gameEngine.graphicsEngine.THREE.DoubleSide;
                 child.geometry.computeVertexNormals();
                 if(child.userData?.invisible){
                     child.visible = false;
@@ -109,6 +110,8 @@ const GameEngine = class {
             }
             else if (child.isLight) {
                 child.castShadow = true;
+                console.log(child);
+                child.shadow.bias = this.graphicsEngine.shadowBias;
                 map.meshes.push(child);
             }
             for (const c of child.children) {
