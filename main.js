@@ -132,7 +132,7 @@ player.addToWorld(gameEngine.world);
 
 
 
-var map = await gameEngine.loadMap("abandoned_city.glb", {});
+var map = await gameEngine.loadMap("map.glb", {});
 
 for (const obj of map.objects) {
     gameEngine.world.addComposite(obj);
