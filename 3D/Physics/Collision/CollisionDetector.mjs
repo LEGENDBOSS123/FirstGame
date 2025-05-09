@@ -2,12 +2,26 @@ import Vector3 from "../Math3D/Vector3.mjs";
 import CollisionContact from "./CollisionContact.mjs";
 import Triangle from "../Shapes/Triangle.mjs";
 import Composite from "../Shapes/Composite.mjs";
+import Sphere from "../Shapes/Sphere.mjs";
+import Polyhedron from "../Shapes/Polyhedron.mjs";
+import Box from "../Shapes/Box.mjs";
 import ClassRegistry from "../Core/ClassRegistry.mjs";
 
 const CollisionDetector = class {
 
     static seperatorCharacter = ":";
 
+    /**
+     * Constructs a new CollisionDetector with the specified options.
+     * 
+     * @param {Object} options - Configuration options for the collision detector.
+     * @param {Map} [options.pairs] - A map to store shape pairs that can collide.
+     * @param {Object} [options.world] - The world context in which collisions are detected.
+     * @param {Array} [options.contacts] - An array to store detected collision contacts.
+     * @param {number} [options.binarySearchDepth=4] - The depth for binary search operations.
+     * @param {number} [options.iterations=4] - The number of iterations to perform in collision handling.
+     * @param {number} [options.concavePolyhedronBinarySearchDepth=1] - The depth for binary search specific to concave polyhedrons.
+     */
     constructor(options) {
         this.pairs = options?.pairs ?? new Map();
         this.world = options?.world ?? null;
@@ -326,6 +340,11 @@ const CollisionDetector = class {
         return t > EPSILON;
     }
 
+    /**
+ * @param {Sphere} sphere
+ * @param {Polyhedron} poly
+ * @returns {number}
+ */
 
     handleSpherePolyhedron(sphere, poly) {
         var spherePos = null;
@@ -491,7 +510,7 @@ const CollisionDetector = class {
         const collisionStart = tEntry < 0 ? 0 : tEntry;
         return [collisionStart, tExit];
     }
-  
+
 
     handleSphereBox(sphere, box) {
 
